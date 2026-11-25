@@ -5,7 +5,7 @@
 var VER='kx-pwa-v25';
 var PAGES=VER+'-pages';
 var PRECACHE=['/','/cloud.js','/fun.js','/admin-panel.js','/manifest.json',
-  '/poems/','/english/','/quiz/','/racing/','/nursery/','/math/','/story/',
+  '/poems/index.html','/english/index.html','/quiz/index.html','/racing/index.html','/nursery/index.html','/math/index.html','/story/index.html',
   '/icons/icon-192.png','/icons/icon-512.png'];
 
 self.addEventListener('install',function(e){
