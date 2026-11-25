@@ -1,7 +1,0 @@
-com.kexin.lexin.app-pngs-0 C:\kexin-app\app\build\generated\res\pngs\release
-com.kexin.lexin.app-resValues-1 C:\kexin-app\app\build\generated\res\resValues\release
-com.kexin.lexin.app-packageReleaseResources-2 C:\kexin-app\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
-com.kexin.lexin.app-packageReleaseResources-3 C:\kexin-app\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
-com.kexin.lexin.app-release-4 C:\kexin-app\app\build\intermediates\merged_res\release\mergeReleaseResources
-com.kexin.lexin.app-main-5 C:\kexin-app\app\src\main\res
-com.kexin.lexin.app-release-6 C:\kexin-app\app\src\release\res

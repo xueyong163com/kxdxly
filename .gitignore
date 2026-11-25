@@ -1,2 +1,9 @@
 /.workbuddy
 /.idea
+
+# APK 编译缓存和中间产物（源码在 app/src，不受影响）
+/kexin-app/.gradle/
+/kexin-app/app/build/
+
+# 早期 TTS 音频备份，正式音频在 english/audio/，这里完全冗余
+/english/audio_backup_tts/
