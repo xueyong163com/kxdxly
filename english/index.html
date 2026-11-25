@@ -1728,7 +1728,12 @@ applyFilter();
       stars=0; first=null; lock=false; matched=0; starEl.textContent='0';
       tip.textContent='';
       choose.style.display='none'; grid.style.display='grid';
-      var picks=shuffle(EG_WORDS.slice()).slice(0,PAIRS);
+      /* 配对池：图标库里所有有音频的词，每次开局重新抽，内容不重样 */
+      var pool=(window.ENG_ICONS?Object.keys(window.ENG_ICONS):[]).map(function(en){
+        return wordOf(en);
+      }).filter(Boolean);
+      if(pool.length<PAIRS) pool=EG_WORDS.slice();
+      var picks=shuffle(pool).slice(0,PAIRS);
       var cards=[];
       picks.forEach(function(w){ cards.push(w); cards.push(w); });
       cards=shuffle(cards);

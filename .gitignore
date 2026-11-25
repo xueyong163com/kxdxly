@@ -1,6 +1,9 @@
 /.workbuddy
 /.idea
 
+# APK 签名密钥：本地保留用于打包，绝不入库
+/kexin-app/kexin.jks
+
 # APK 编译缓存和中间产物（源码在 app/src，不受影响）
 /kexin-app/.gradle/
 /kexin-app/app/build/

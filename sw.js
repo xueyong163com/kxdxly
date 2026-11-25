@@ -2,7 +2,7 @@
    - 页面/脚本/数据：stale-while-revalidate（先用缓存秒开，联网时后台静默更新）
    - 音频 mp3：缓存优先，点过一次就留在手机里，断网也能听
    - 云端同步（家长设置/时长）：跨域请求直接放行，cloud.js 自己有离线兜底 */
-var VER='kx-pwa-v25';
+var VER='kx-pwa-v26';
 var PAGES=VER+'-pages';
 /* 音频池用固定名：一键下载的几百MB不随版本升级被清掉 */
 var AUDIO='kexin-audio-v1';
