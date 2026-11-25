@@ -133,6 +133,7 @@
 </div>
 
 <script src="stories.js"></script>
+<script src="../tts.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
 <script>
@@ -166,7 +167,7 @@
     grid.appendChild(el);
   });
 
-  var cur=null, curIdx=0, audio=null, autoMode=false;
+  var cur=null, curIdx=0, autoMode=false;
   var storyView=document.getElementById('storyView'), listView=document.getElementById('listView');
   var linesBox=document.getElementById('lines'), dtTitle=document.getElementById('dtTitle');
   var finish=document.getElementById('finish'), autoBtn=document.getElementById('autoBtn');
@@ -198,16 +199,10 @@
       r.classList.toggle('speaking', Number(r.dataset.i)===i);
     });
     var rows=linesBox.children; if(rows[i]) rows[i].scrollIntoView({block:'nearest',behavior:'smooth'});
-    if(!audio) audio=new Audio();
-    if(!audio.paused){ try{ audio.pause(); }catch(e){} }
-    var fn='audio/story_'+cur.id+'_L'+('0'+(i+1)).slice(-2)+'.mp3';
-    audio.src=fn;
-    var p=audio.play(); if(p&&p.catch)p.catch(function(){});
-    audio.onended=function(){
+    KX_TTS.speak(cur.lines[i]||'', { onend: function(){
       if(auto && autoMode && i<cur.lines.length-1){ playLine(i+1,true); }
       else if(auto && autoMode && i===cur.lines.length-1){ finishStory(); }
-    };
-    if(auto!==false) audio.autoplay=true;
+    }});
   }
 
   function finishStory(){
@@ -237,7 +232,7 @@
   }
 
   document.getElementById('backBtn').onclick=function(){
-    if(audio){ try{ audio.pause(); }catch(e){} }
+    KX_TTS.stop();
     autoMode=false; autoBtn.classList.remove('on');
     storyView.classList.remove('active'); listView.classList.add('active');
     window.scrollTo(0,0);
@@ -254,7 +249,7 @@
   document.getElementById('reciteBtn').onclick=function(){
     if(!window.KX_RECITE) return;
     KX_RECITE.open({ id:'story_'+cur.id, verb:'讲', thing:'故事',
-      onOpen:function(){ if(audio){ try{ audio.pause(); }catch(e){} } autoMode=false; autoBtn.classList.remove('on'); } });
+      onOpen:function(){ KX_TTS.stop(); autoMode=false; autoBtn.classList.remove('on'); } });
   };
 
   refreshStars();

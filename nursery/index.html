@@ -199,7 +199,7 @@
   <div class="view active" id="listView">
     <div class="mode-row" id="modeRow"></div>
     <div class="grid" id="grid"></div>
-    <footer>给家长：50 首经典童谣，整首和每一句都配了提前录好的声音，微信里也能听。听完一首自动记一颗星，进度存在本机；页面只记录玩了多久，用来给家长做时间管理，不记内容、不需要登录。</footer>
+    <footer>给家长：50 首经典童谣，整首和每一句都会用手机自带的声音念出来，微信里也能听。听完一首自动记一颗星，进度存在本机；页面只记录玩了多久，用来给家长做时间管理，不记内容、不需要登录。</footer>
   </div>
 
   <!-- 详情 -->
@@ -253,6 +253,7 @@
 <script src="../cloud.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
+<script src="../tts.js"></script>
 <script src="data.js"></script>
 <script>
 const ALL = window.NURSERY_DATA;
@@ -289,20 +290,22 @@ function addStar(id){
 }
 function refreshStars(){ document.getElementById('starCount').textContent = Object.keys(getStars()).length; }
 
-/* ---------------- 预录音频播放 ---------------- */
-const player = new Audio();
-player.preload = 'auto';
-function playAudio(src, onended, onerror){
-  try{
-    player.pause();
-    player.onended = null; player.onerror = null;
-    player.src = src; player.load();
-    player.onended = onended || null;
-    player.onerror = onerror || null;
-    const p = player.play(); if(p && p.catch) p.catch(()=>{});
-  }catch(e){}
+/* ---------------- 系统朗读（TTS）：儿歌内容全部由浏览器/系统语音朗读 ---------------- */
+/* 音频地址 → 文本：nXXX_lNN 是单句，nXXX 是整首连念 */
+function nurseryText(src){
+  var m=/^audio\/n(\d+)(_l(\d+))?\.mp3$/.exec(src);
+  if(!m) return null;
+  var s=byId('n'+m[1]); if(!s) return '';
+  if(m[3]) return s.lines[Number(m[3])-1]||'';
+  return (s.lines||[]).join('');
 }
-function stopAudio(){ try{ player.pause(); }catch(e){} }
+function playAudio(src, onended, onerror){
+  const t=nurseryText(src);
+  if(t!=null){ if(t) KX_TTS.speak(t,{onend:onended}); else if(onended) onended(); return; }
+  if(src==='audio/test.mp3'){ KX_TTS.speak('你好呀，听到这句话就说明朗读正常！'); if(onended) onended(); return; }
+  if(onended) onended();
+}
+function stopAudio(){ KX_TTS.stop(); }
 
 let currentId = null;
 function byId(id){ return ALL.find(s=>s.id===id); }
@@ -313,7 +316,7 @@ if(/MicroMessenger/i.test(UA)){
   const n=document.getElementById('notice');
   n.classList.add('show');
   n.innerHTML='<b>微信里也能听声音啦</b>'
-    +'<span>这一页用的是提前录好的声音，不靠浏览器朗读，微信里直接就能听。第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
+    +'<span>这一页用手机自带的声音念儿歌，微信里直接就能听。第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
     +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
 }
 
@@ -393,8 +396,10 @@ function speakLine(i){
   if(el) el.classList.add('speaking');
   playAudio('audio/'+s.id+'_l'+('0'+(i+1)).slice(-2)+'.mp3', clearHighlight);
 }
-/* 整首：整段录音连念，全部行高亮；听完自动点亮星星 */
+/* 整首：整首连念，全部行高亮；听完自动点亮星星 */
+let playingTTS=false;
 function setPlaying(on){
+  playingTTS=!!on;
   const b = document.getElementById('playAll'); if(!b) return;
   b.innerHTML = SPEAK_SVG + (on ? ' 正在念…点一下停止' : ' 从头念整首');
 }
@@ -421,7 +426,7 @@ function speakWhole(){
 function stopAll(){ stopSing(); stopAudio(); clearHighlight(); setPlaying(false); setDance(false); }
 document.getElementById('playAll').onclick = ()=>{
   const s = byId(currentId); if(!s) return;
-  if(!player.paused){ stopAll(); return; }
+  if(playingTTS){ stopAll(); return; }
   speakWhole();
 };
 document.getElementById('stopBtn').onclick = stopAll;
@@ -565,7 +570,7 @@ document.getElementById('voiceClose').onclick = ()=>{ voiceMask.classList.remove
 voiceMask.onclick = e=>{ if(e.target===voiceMask){ voiceMask.classList.remove('show'); stopAudio(); } };
 document.getElementById('voiceTestPlay').onclick = ()=>{
   playAudio('audio/test.mp3');
-  document.getElementById('voiceStatus').textContent = '正在播放…听到「你好呀」就说明声音正常。';
+  document.getElementById('voiceStatus').textContent = '正在朗读…听到「你好呀」就说明声音正常。';
 };
 
 /* ---------------- 启动 ---------------- */
@@ -608,8 +613,8 @@ refreshStars();
 <script>
 (function(){
   var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
-  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
-  var audio=null,timer=0;
+  var PRAISE=['你真棒！','太厉害啦！','好聪明呀！','真不错哦！','可心最棒啦！'];
+  var timer=0;
   var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
   if(!box||!say) return;
   /* 全屏彩纸（完成大事时用） */
@@ -631,9 +636,7 @@ refreshStars();
   /* 随机表扬语音 */
   window.praiseOnce=function(){
     try{
-      if(audio){ audio.pause(); audio=null; }
-      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   };
   box.addEventListener('click',function(){
@@ -642,10 +645,7 @@ refreshStars();
     say.classList.add('show');
     clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
     try{
-      if(audio){ audio.pause(); audio=null; }
-      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
-      audio=new Audio(src);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(Math.random()<.45?'你好呀，可心！':PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   });
 })();

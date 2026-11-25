@@ -378,7 +378,7 @@
     <div class="parent-note">
       <b>给家长：</b>页面最上面是<strong>英语游乐场</strong>：<b>字母 ABC</b>（点字母听标准发音和示例词）、<b>英文儿歌</b>（听儿歌、逐句跟着念）以及几个小游戏都可以不识字直接玩：<b>泡泡爆爆</b>（听单词戳泡泡）、<b>翻翻配对</b>（记忆翻牌）、<b>谁在说话</b>（听英文叫声猜动物）、<b>听音点图</b>（听单词点图片）、<b>找影子</b>（听单词找黑影），答对都有星星和彩纸。下面的词卡适合亲子共读：点单词卡念英文，进到单词页还能听中文意思，「听这一页」会依次念完当前 12 个词。<br>
       新增四个学习模块：<b>自然拼读</b>（26 个字母发音 + 10 组同韵词，学会自己拼读）、<b>分级绘本</b>（24 本短句绘本，分 3 级，点句子听读音）、<b>场景英语</b>（起床、吃饭、逛公园等 8 个场景的整句对话）、<b>小伙伴班尼</b>（一只小斑马陪着学，还能看攒了多少星星）。<br>
-      默认先学 <b id="startCount">-</b> 个短单词，较长的词收在「全部」里。词表和句子都是幼儿园阶段常用内容，人工整理；所有英文都是<strong>提前录好的音频</strong>，不依赖浏览器朗读，微信里、各种手机浏览器里都能听。第一次打开先点一下屏幕，没声音就检查静音键和媒体音量。
+      默认先学 <b id="startCount">-</b> 个短单词，较长的词收在「全部」里。词表和句子都是幼儿园阶段常用内容，人工整理；所有英文都用<strong>手机自带语音朗读</strong>，微信里、各种手机浏览器里都能听。第一次打开先点一下屏幕，没声音就检查静音键和媒体音量。
     </div>
   </section>
 
@@ -408,7 +408,7 @@
       <h3 id="voiceTitle">声音说明</h3>
       <button class="vp-close" id="voiceClose" aria-label="关闭">×</button>
     </div>
-    <p class="vp-desc">这一页用的是<strong>提前录好的声音</strong>，不依赖浏览器朗读，所以微信里、各种手机浏览器里都能听。</p>
+    <p class="vp-desc">这一页用<strong>手机自带的声音</strong>朗读，微信里、各种手机浏览器里都能听。</p>
     <div class="vp-empty" id="voiceStatus">点下面的按钮试一下，听到「你好」就说明声音正常。</div>
     <button class="vp-default" id="voiceTest" style="margin-top:14px">▶ 测试一下声音</button>
     <div class="vp-foot">没声音时：关掉手机侧边静音键，把媒体音量调大，再点一次测试。</div>
@@ -418,6 +418,7 @@
 <script src="../cloud.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
+<script src="../tts.js"></script>
 <script src="data.js"></script>
 <script src="enrich.js"></script>
 <script>
@@ -496,16 +497,15 @@ function hasStar(id){ return !!getStars()[id]; }
 function addStar(id){ const s=getStars(); if(s[id]) return false; s[id]=1; try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){} return true; }
 function refreshStars(){ document.getElementById('starCount').textContent = Object.keys(getStars()).length; }
 
-/* ---------------- 预录音频播放（不依赖浏览器朗读） ---------------- */
-const player = new Audio();
-player.preload='auto';
-function playAudio(src){
-  try{
-    player.pause(); player.src=src; player.load();
-    const p=player.play(); if(p&&p.catch) p.catch(()=>{});
-  }catch(e){}
+/* ---------------- 系统朗读（TTS）：全部内容由浏览器/系统语音朗读 ---------------- */
+function playAudio(src, onended){
+  var m=/^audio\/w(\d+)(_zh)?\.mp3$/.exec(src);
+  if(m){ const w=byId('w'+m[1]);
+    if(w){ KX_TTS.speak(m[2]?(w.zh||''):(w.en||''), { lang:m[2]?'zh-CN':'en-US', onend:onended }); return; } }
+  if(src==='audio/test.mp3'){ KX_TTS.speak('你好呀，听到这句话就说明朗读正常！'); if(onended)onended(); return; }
+  if(onended) onended();
 }
-function stopAudio(){ try{ player.pause(); }catch(e){} }
+function stopAudio(){ KX_TTS.stop(); }
 let chainActive=false, currentId=null, playToken=0;
 function byId(id){ return ALL.find(w=>w.id===id); }
 function notice(msg){ const n=document.getElementById('notice'); n.textContent=msg; n.classList.add('show'); }
@@ -514,14 +514,12 @@ const IN_WECHAT = /MicroMessenger/i.test(UA);
 if(IN_WECHAT){
   const n=document.getElementById('notice');
   n.classList.add('show','wx');
-  n.innerHTML='<b>微信里也能听声音啦</b>'
-    +'<span>这一页用的是提前录好的声音，不靠浏览器朗读，微信里直接就能听。第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
+  n.innerHTML='<b>微信里也能听朗读啦</b>'
+    +'<span>这一页用手机自带的声音读单词，第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
     +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
 }
 function speak(text, lang, rate, onend){
-  const w=byId(currentId); if(!w) return;
-  playAudio(lang==='zh' ? 'audio/'+w.id+'_zh.mp3' : 'audio/'+w.id+'.mp3');
-  if(onend) onend();
+  KX_TTS.speak(text, { lang: lang==='zh'?'zh-CN':'en-US', rate: rate||0.9, onend: onend });
 }
 function clearReading(){ document.querySelectorAll('.word-card.reading').forEach(el=>el.classList.remove('reading')); }
 function setPlaying(on){
@@ -529,21 +527,19 @@ function setPlaying(on){
   b.disabled=false;
   b.innerHTML = SPEAK+' 听这一页';
 }
-function stopAll(){ chainActive=false; playToken++; player.onended=null; stopAudio(); clearReading(); setPlaying(false); }
+function stopAll(){ chainActive=false; playToken++; stopAudio(); clearReading(); setPlaying(false); }
 function readPage(){
   const start=(state.page-1)*PER_PAGE;
   const words=state.filtered.slice(start,start+PER_PAGE);
   if(!words.length) return;
   let i=0; chainActive=true; setPlaying(true);
   const next=()=>{
-    if(!chainActive || i>=words.length){ player.onended=null; clearReading(); setPlaying(false); chainActive=false; return; }
+    if(!chainActive || i>=words.length){ clearReading(); setPlaying(false); chainActive=false; return; }
     clearReading();
     const w=words[i++];
     const card=document.querySelector('.word-card[data-id="'+w.id+'"]');
     if(card) card.classList.add('reading');
-    player.onended=next;
-    playAudio('audio/'+w.id+'.mp3');
-    setTimeout(()=>{ if(player.paused && chainActive) next(); }, 3500);
+    KX_TTS.speak(w.en, { lang:'en-US', rate:.85, onend: next });
   };
   next();
 }
@@ -552,7 +548,7 @@ function renderVoicePanel(){
   if(test) test.onclick=()=>{
     playAudio('audio/test.mp3');
     const st=document.getElementById('voiceStatus');
-    if(st) st.textContent='正在播放…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
+    if(st) st.textContent='正在朗读…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
   };
 }
 function openVoice(){ renderVoicePanel(); document.getElementById('voiceMask').classList.add('show'); }
@@ -780,8 +776,8 @@ applyFilter();
 <script>
 (function(){
   var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
-  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
-  var audio=null,timer=0;
+  var PRAISE=['你真棒！','太厉害啦！','好聪明呀！','真不错哦！','可心最棒啦！'];
+  var timer=0;
   var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
   if(!box||!say) return;
   /* 开场邀请 */
@@ -809,9 +805,7 @@ applyFilter();
   /* 随机表扬语音 */
   window.praiseOnce=function(){
     try{
-      if(audio){ audio.pause(); audio=null; }
-      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   };
   box.addEventListener('click',function(){
@@ -820,10 +814,7 @@ applyFilter();
     say.classList.add('show');
     clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
     try{
-      if(audio){ audio.pause(); audio=null; }
-      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
-      audio=new Audio(src);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(Math.random()<.45?'你好呀，可心！':PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   });
 })();
@@ -1135,14 +1126,13 @@ applyFilter();
 (function(){
   var LETTERS='abcdefghijklmnopqrstuvwxyz'.split('');
   var EG={a:['ant','蚂蚁'],b:['bird','鸟'],c:['cat','猫'],d:['dog','狗'],e:['eight','八'],f:['fish','鱼'],g:['goat','山羊'],h:['hen','母鸡'],i:['ice cream','冰淇淋'],j:['juice','果汁'],k:['kiwi','猕猴桃'],l:['lion','狮子'],m:['mouse','老鼠'],n:['nine','九'],o:['orange','橙子'],p:['pig','猪'],q:['queen','女王'],r:['rabbit','兔子'],s:['sheep','绵羊'],t:['tiger','老虎'],u:['uncle','叔叔'],v:['van','货车'],w:['wolf','狼'],x:['box','盒子'],y:['yellow','黄色'],z:['zebra','斑马']};
-  var EXAUDIO={q:'abc_ex_queen',v:'abc_ex_van',x:'abc_ex_box'};
   var mask=document.getElementById('abcMask'),
       grid=document.getElementById('abcLetters'),
       big=document.getElementById('abcBig'),
       egEl=document.getElementById('abcEg'),
-      idx=0, curAudio=null;
+      idx=0;
   function wordOf(en){ if(window.WORD_DATA){ for(var i=0;i<WORD_DATA.length;i++){ if(WORD_DATA[i].en===en) return WORD_DATA[i]; } } return null; }
-  function play(src){ try{ if(curAudio){curAudio.pause();curAudio=null;} curAudio=new Audio(src); var p=curAudio.play(); if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  function playLetter(ch){ KX_TTS.stop(); KX_TTS.speak(ch,{lang:'en-US',rate:.85}); }
   LETTERS.forEach(function(ch,i){
     var b=document.createElement('button');
     b.className='abc-key'; b.textContent=ch.toUpperCase(); b.dataset.i=i;
@@ -1156,20 +1146,19 @@ applyFilter();
     var eg=EG[ch];
     egEl.innerHTML=eg[0]+' <span class="zh">'+eg[1]+'</span>';
     egEl.dataset.en=eg[0];
-    play('audio/abc_'+ch+'.mp3');
+    playLetter(ch);
   }
   function hearEg(){
     var ch=LETTERS[idx], en=egEl.dataset.en;
     if(!en) return;
-    var w=wordOf(en);
-    if(w){ play('audio/'+w.id+'.mp3'); }
-    else if(EXAUDIO[ch]){ play('audio/'+EXAUDIO[ch]+'.mp3'); }
+    KX_TTS.stop();
+    KX_TTS.speak(en,{lang:'en-US'});
   }
-  document.getElementById('abcHear').onclick=function(){ play('audio/abc_'+LETTERS[idx]+'.mp3'); };
+  document.getElementById('abcHear').onclick=function(){ playLetter(LETTERS[idx]); };
   document.getElementById('abcHearEg').onclick=hearEg;
   document.getElementById('abcPrev').onclick=function(){ select((idx+25)%26); };
   document.getElementById('abcNext').onclick=function(){ select((idx+1)%26); };
-  document.getElementById('abcClose').onclick=function(){ mask.classList.add('hide'); try{if(curAudio)curAudio.pause();}catch(e){} };
+  document.getElementById('abcClose').onclick=function(){ mask.classList.add('hide'); KX_TTS.stop(); };
   document.getElementById('abcOpen').onclick=function(){ mask.classList.remove('hide'); select(0); };
 })();
 
@@ -1189,57 +1178,13 @@ applyFilter();
       lyricEl=document.getElementById('songLyric'),
       loopBtn=document.getElementById('songLoop'),
       goBtn=document.getElementById('songGo');
-  var curSong=null, curAudio=null, loop=true, playing=false, li=0;
+  var curSong=null, loop=true, playing=false, li=0;
+  function playLineAudio(i,onEnd){
+    if(curSong){ KX_TTS.speak(curSong.lines[i]||'',{lang:'en-US',rate:.92,onend:onEnd}); }
+    else if(onEnd){ onEnd(); }
+  }
 
-  /* —— 字母歌真唱：把 26 个字母音频按《小星星》旋律变调连唱（离线 TTS 不会唱，只能浏览器里变调）——
-     旋律取已确认的 Twinkle Twinkle 音高：C C G G A A G / F F E E D D C / G G F F E E D …… */
-  var ABC_FREQ={C:261.63,D:293.66,E:329.63,F:349.23,G:392.00,A:440.00};
-  var ABC_NOTES=[
-    ['a','C',1],['b','C',1],['c','C',1],['d','G',1],['e','G',1],['f','G',1],['g','G',1],
-    ['h','F',1],['i','F',1],['j','E',1],['k','E',1],['l','D',0.5],['m','D',0.5],['n','C',0.5],['o','C',0.5],['p','C',1.5],
-    ['q','G',1],['r','G',1],['s','F',1],['t','F',1],['u','E',1],['v','E',1],['w','D',1],
-    ['x','G',1],['y','G',1],['z','F',1]
-  ];
-  var ABC_LINE_START=[0,7,16,23]; /* 每行起始字母下标：A-G / H-P / Q-W / X-Z */
-  var _abcCtx=null,_abcBuf=null,_abcTok=0,_abcSrc=[];
-  function abcCtx(){ if(_abcCtx===null){ try{_abcCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){_abcCtx=false;} } return (_abcCtx||false); }
-  function abcStop(){ _abcTok++; _abcSrc.forEach(function(s){try{s.stop();}catch(e){}}); _abcSrc=[]; }
-  function abcEnsure(){
-    var ctx=abcCtx(); if(!ctx) return Promise.reject('noctx');
-    if(_abcBuf) return Promise.resolve(_abcBuf);
-    var ks='abcdefghijklmnopqrstuvwxyz'.split('');
-    return Promise.all(ks.map(function(ch){
-      return fetch('audio/abc_'+ch+'.mp3').then(function(r){return r.arrayBuffer();}).then(function(ab){return ctx.decodeAudioData(ab);}).then(function(b){return [ch,b];});
-    })).then(function(pairs){ _abcBuf={}; pairs.forEach(function(p){_abcBuf[p[0]]=p[1];}); return _abcBuf; });
-  }
-  function abcPlayLine(lineIdx,onEnd){
-    abcStop();
-    var tok=++_abcTok;
-    function done(){ if(tok===_abcTok) onEnd&&onEnd(); }
-    if(lineIdx>=4){ play('audio/song_abcsong_L'+(lineIdx+1)+'.mp3',done); return; }
-    var ctx=abcCtx();
-    if(!ctx){ play('audio/song_abcsong_L'+(lineIdx+1)+'.mp3',done); return; }
-    if(ctx.state==='suspended'){ ctx.resume(); }
-    abcEnsure().then(function(bufs){
-      if(tok!==_abcTok) return;
-      var bpm=92, beat=60/bpm, REF=220;
-      var start=ABC_LINE_START[lineIdx];
-      var endIdx=(lineIdx<3)?ABC_LINE_START[lineIdx+1]:ABC_NOTES.length;
-      var t=ctx.currentTime+0.12;
-      for(var i=start;i<endIdx;i++){
-        var n=ABC_NOTES[i], freq=ABC_FREQ[n[1]], dur=n[2]*beat, b=bufs[n[0]];
-        var src=ctx.createBufferSource(); src.buffer=b; src.playbackRate.value=freq/REF;
-        var g=ctx.createGain(); g.gain.value=0.95; src.connect(g); g.connect(ctx.destination);
-        var clip=b.duration/(freq/REF);
-        src.start(t); src.stop(t+Math.min(clip,dur)+0.05); _abcSrc.push(src);
-        t+=dur*1.08;
-      }
-      setTimeout(done, Math.max(0,(t-ctx.currentTime)*1000));
-    }).catch(function(){ if(tok===_abcTok) play('audio/song_abcsong_L'+(lineIdx+1)+'.mp3',done); });
-  }
-  function playLineAudio(i,onEnd){ if(curSong&&curSong.id==='abcsong') abcPlayLine(i,onEnd); else play('audio/song_'+curSong.id+'_L'+(i+1)+'.mp3',onEnd); }
-  function play(src,cb){ try{ if(curAudio){curAudio.pause();curAudio=null;} curAudio=new Audio(src); curAudio.onended=function(){ if(cb)cb(); }; var p=curAudio.play(); if(p&&p.catch)p.catch(function(){}); }catch(e){ if(cb)cb(); } }
-  SONGS.forEach(function(s,i){
+    SONGS.forEach(function(s,i){
     var row=document.createElement('div'); row.className='song-row';
     row.innerHTML='<span class="no">'+(i+1)+'</span><span class="ti">'+s.zh+'<small>'+s.en+'</small></span>';
     row.onclick=function(){ openSong(s); };
@@ -1263,12 +1208,12 @@ applyFilter();
     });
   }
   goBtn.onclick=function(){
-    if(playing){ playing=false; abcStop(); try{if(curAudio)curAudio.pause();}catch(e){} highlight(-1); goBtn.textContent='听儿歌'; }
+    if(playing){ playing=false; KX_TTS.stop(); highlight(-1); goBtn.textContent='听儿歌'; }
     else { playing=true; goBtn.textContent='暂停'; li=0; runLine(); }
   };
   loopBtn.onclick=function(){ loop=!loop; loopBtn.textContent=loop?'循环：开':'循环：关'; };
-  document.getElementById('songBack').onclick=function(){ playing=false; abcStop(); try{if(curAudio)curAudio.pause();}catch(e){} playView.style.display='none'; list.style.display='flex'; };
-  document.getElementById('songClose').onclick=function(){ playing=false; abcStop(); try{if(curAudio)curAudio.pause();}catch(e){} mask.classList.add('hide'); };
+  document.getElementById('songBack').onclick=function(){ playing=false; KX_TTS.stop(); playView.style.display='none'; list.style.display='flex'; };
+  document.getElementById('songClose').onclick=function(){ playing=false; KX_TTS.stop(); mask.classList.add('hide'); };
   document.getElementById('songOpen').onclick=function(){ mask.classList.remove('hide'); if(playView.style.display!=='none'){ playView.style.display='none'; list.style.display='flex'; } };
   lyricEl.addEventListener('click',function(e){ var t=e.target; if(t.classList.contains('ln')){ li=Number(t.dataset.i); highlight(li); playLineAudio(li); } });
 })();
@@ -1318,7 +1263,7 @@ applyFilter();
       subEl=document.getElementById('egSub'), replay=document.getElementById('egReplay'),
       actions=document.getElementById('egActions'),
       comboEl=document.getElementById('egCombo');
-  var gAudio=null, gAC=null, deck=[], qi=0, stars=0, locked=false, cur=0, combo=0;
+  var gAC=null, deck=[], qi=0, stars=0, locked=false, cur=0, combo=0;
   function showCombo(){
     if(!comboEl) return;
     if(combo>=2){ comboEl.textContent='连对 '+combo+' 个！'; comboEl.classList.remove('show'); void comboEl.offsetWidth; comboEl.classList.add('show'); }
@@ -1355,16 +1300,15 @@ applyFilter();
   function noSound(){ tone(220,.18,'triangle',.06); }
   function goldSound(){ tone(660,.12,'sine',.07); tone(880,.12,'sine',.06,.09); tone(1320,.22,'sine',.05,.18); }
   function gplay(src,cb){
-    try{
-      if(gAudio){ gAudio.pause(); gAudio=null; }
-      try{ if(typeof player!=='undefined'&&player) player.pause(); }catch(e){}
-      gAudio=new Audio(src);
-      gAudio.onended=function(){ if(cb)cb(); };
-      gAudio.onerror=function(){ if(cb)cb(); };
-      var p=gAudio.play(); if(p&&p.catch)p.catch(function(){});
-    }catch(e){ if(cb)cb(); }
+    KX_TTS.stop();
+    var m=/^audio\/w(\d+)\.mp3$/.exec(src);
+    if(m){ var w=byId('w'+m[1]);
+      if(w){ KX_TTS.speak(w.en||'',{lang:'en-US',onend:cb}); return; }
+      if(cb) cb(); return; }
+    if(src==='audio/g01.mp3'){ KX_TTS.speak('听一听，点一点你听到的单词哦',{onend:cb}); return; }
+    if(cb) cb();
   }
-  function gstop(){ try{ if(gAudio){ gAudio.pause(); gAudio=null; } }catch(e){} }
+  function gstop(){ KX_TTS.stop(); }
   function renderDots(){
     var h='';
     for(var i=0;i<N;i++) h+='<span class="eg-dot'+(i<qi?' ok':'')+'"></span>';
@@ -1535,7 +1479,7 @@ applyFilter();
 <script>
 /* ============ 英语游乐场：泡泡爆爆 / 翻翻配对 / 谁在说话 ============ */
 (function(){
-  var AC=null, GA=null;
+  var AC=null;
   function tone(f,d,t,v,delay){
     try{
       var C=window.AudioContext||window.webkitAudioContext; if(!C) return;
@@ -1552,18 +1496,20 @@ applyFilter();
   function okSound(){ tone(520,.14,'sine',.07); tone(780,.2,'sine',.05,.08); }
   function noSound(){ tone(220,.18,'triangle',.06); }
   function goldSound(){ tone(660,.12,'sine',.07); tone(880,.12,'sine',.06,.09); tone(1320,.22,'sine',.05,.18); }
+  /* 音频地址 → 朗读：单词读英文，中文音频读中文，gXX 是游戏提示语 */
   function gplay(src,cb){
-    try{
-      if(GA){ GA.pause(); GA=null; }
-      try{ if(typeof player!=='undefined'&&player) player.pause(); }catch(e){}
-      if(!src){ if(cb)cb(); return; }
-      GA=new Audio(src);
-      GA.onended=function(){ if(cb)cb(); };
-      GA.onerror=function(){ if(cb)cb(); };
-      var p=GA.play(); if(p&&p.catch)p.catch(function(){});
-    }catch(e){ if(cb)cb(); }
+    KX_TTS.stop();
+    if(!src){ if(cb)cb(); return; }
+    var m=/^audio\/w(\d+)(_zh)?\.mp3$/.exec(src);
+    if(m){ var w=byId('w'+m[1]);
+      if(w){ KX_TTS.speak(m[2]?(w.zh||''):(w.en||''),{lang:m[2]?'zh-CN':'en-US',onend:cb}); return; }
+      if(cb) cb(); return; }
+    if(src==='audio/g02.mp3'){ KX_TTS.speak('听一听，戳破你听到的单词泡泡',{onend:cb}); return; }
+    if(src==='audio/g03.mp3'){ KX_TTS.speak('翻开卡片，找出读音一样的两张',{onend:cb}); return; }
+    if(src==='audio/g04.mp3'){ KX_TTS.speak('听一听，是哪个小动物在说话',{onend:cb}); return; }
+    if(cb) cb();
   }
-  function gstop(){ try{ if(GA){ GA.pause(); GA=null; } }catch(e){} }
+  function gstop(){ KX_TTS.stop(); }
   function wordOf(en){
     if(window.WORD_DATA){ for(var i=0;i<WORD_DATA.length;i++){ if(WORD_DATA[i].en===en) return WORD_DATA[i]; } }
     return null;
@@ -1728,12 +1674,7 @@ applyFilter();
       stars=0; first=null; lock=false; matched=0; starEl.textContent='0';
       tip.textContent='';
       choose.style.display='none'; grid.style.display='grid';
-      /* 配对池：图标库里所有有音频的词，每次开局重新抽，内容不重样 */
-      var pool=(window.ENG_ICONS?Object.keys(window.ENG_ICONS):[]).map(function(en){
-        return wordOf(en);
-      }).filter(Boolean);
-      if(pool.length<PAIRS) pool=EG_WORDS.slice();
-      var picks=shuffle(pool).slice(0,PAIRS);
+      var picks=shuffle(EG_WORDS.slice()).slice(0,PAIRS);
       var cards=[];
       picks.forEach(function(w){ cards.push(w); cards.push(w); });
       cards=shuffle(cards);
@@ -1819,8 +1760,9 @@ applyFilter();
         b.addEventListener('click',function(){ pick(a,b); });
         grid.appendChild(b);
       });
-      gplay('audio/'+cur.s+'.mp3');
+      speakAnimal(cur);
     }
+    function speakAnimal(a){ KX_TTS.speak(a.en,{lang:'en-US'}); }
     function pick(a,b){
       if(locked) return;
       if(a.en===cur.en){
@@ -1836,7 +1778,7 @@ applyFilter();
         setTimeout(function(){ b.classList.remove('wiggle'); },420);
         combo=0; showCombo(comboEl,combo);
         noSound(); tip.textContent='再听一听是谁在说话～';
-        gplay('audio/'+cur.s+'.mp3');
+        speakAnimal(cur);
       }
     }
     function next(){
@@ -1852,7 +1794,7 @@ applyFilter();
       mask.classList.remove('hide');
       gplay('audio/g04.mp3', ask);
     }
-    replayBtn.addEventListener('click',function(){ if(cur) gplay('audio/'+cur.s+'.mp3'); });
+    replayBtn.addEventListener('click',function(){ if(cur) speakAnimal(cur); });
     document.getElementById('wsClose').addEventListener('click',close);
     document.getElementById('wsOpen').addEventListener('click',open);
     mask.addEventListener('click',function(e){ if(e.target===mask) close(); });
@@ -1951,11 +1893,28 @@ applyFilter();
   var SC=window.SCENES||{scenes:[]};
   var BUDDY=window.BUDDY||{name:'斑马班尼',en:'Benny'};
   var $=function(id){ return document.getElementById(id); };
-  var audio=null;
-  function say(src){
-    try{ if(audio){audio.pause();} audio=new Audio(src); var p=audio.play(); if(p&&p.catch)p.catch(function(){}); }catch(e){}
+  /* 音频地址 → 文本：拼读/绘本/场景音频已移除，按地址反查要朗读的英文 */
+  function audioText(src){
+    var m=/^audio\/ph_l_([a-z])\.mp3$/.exec(src);
+    if(m){ var L=null; for(var i=0;i<PH.letters.length;i++){ if(PH.letters[i].low===m[1]) L=PH.letters[i]; }
+      return L?(L.low+'. '+L.word):''; }
+    m=/^audio\/ph_b_([a-z]+)\.mp3$/.exec(src);
+    if(m){ var f=null; for(var j=0;j<PH.families.length;j++){ if(PH.families[j].key===m[1]) f=PH.families[j]; }
+      return f?f.words.join(', '):''; }
+    var i2,j2;
+    for(i2=0;i2<BK.books.length;i2++){ var b=BK.books[i2];
+      for(j2=0;j2<b.lines.length;j2++){ if(b.lines[j2].audio===src) return b.lines[j2].en; } }
+    for(i2=0;i2<SC.scenes.length;i2++){ var s=SC.scenes[i2];
+      if(s.audio===src) return s.lines.map(function(l){ return l.en; }).join(' ');
+      for(j2=0;j2<s.lines.length;j2++){ if(s.lines[j2].audio===src) return s.lines[j2].en; } }
+    return null;
   }
-  function stop(){ try{ if(audio) audio.pause(); }catch(e){} }
+  function say(src){
+    var t=audioText(src);
+    if(t==null) return;
+    if(t) KX_TTS.speak(t,{lang:'en-US'});
+  }
+  function stop(){ KX_TTS.stop(); }
   function reward(id, el){
     if(addStar(id)){ refreshStars(); if(el){ el.classList.add('got'); } }
   }

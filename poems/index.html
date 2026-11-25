@@ -353,8 +353,8 @@
     <div class="pager-bar" id="pagerBar"></div>
 
     <div class="parent-note">
-      <b>给家长：</b>孩子还不识字，这个页面主要靠"听"。声音是<strong>提前录好的音频</strong>：<strong>点哪一句就念哪一句</strong>（念的时候那一句会亮起来），想一次听完就点「听整首诗」；读完有看图小问答。<br>
-      默认只放 <b id="startCount">207</b> 首四句短诗；点「全部 301 首」会看到八句律诗，那些更适合大一点再读。诗词原文来自开源项目 chinese-poetry 的《唐诗三百首》《千家诗》，已转简体；拼音由工具逐字生成，个别多音字请以老师为准。音频不依赖浏览器朗读，微信里、各种手机浏览器里都能听；第一次打开先点一下屏幕，没声音就检查静音键和媒体音量。
+      <b>给家长：</b>孩子还不识字，这个页面主要靠"听"。声音由<strong>手机自带语音朗读</strong>：<strong>点哪一句就念哪一句</strong>（念的时候那一句会亮起来），想一次听完就点「听整首诗」；读完有看图小问答。<br>
+      默认只放 <b id="startCount">207</b> 首四句短诗；点「全部 301 首」会看到八句律诗，那些更适合大一点再读。诗词原文来自开源项目 chinese-poetry 的《唐诗三百首》《千家诗》，已转简体；拼音由工具逐字生成，个别多音字请以老师为准。朗读用的是手机/浏览器的系统语音，微信里、各种手机浏览器里都能听；第一次打开先点一下屏幕，没声音就检查静音键和媒体音量。
     </div>
   </section>
 
@@ -384,7 +384,7 @@
       <h3 id="voiceTitle">声音说明</h3>
       <button class="vp-close" id="voiceClose" aria-label="关闭">×</button>
     </div>
-    <p class="vp-desc">这一页用的是<strong>提前录好的声音</strong>，不依赖浏览器朗读，所以微信里、各种手机浏览器里都能听。</p>
+    <p class="vp-desc">这一页用<strong>手机自带的声音</strong>朗读，微信里、各种手机浏览器里都能听。</p>
     <div class="vp-empty" id="voiceStatus">点下面的按钮试一下，听到「你好」就说明声音正常。</div>
     <button class="vp-default" id="voiceTest" style="margin-top:14px">▶ 测试一下声音</button>
     <div class="vp-foot">没声音时：关掉手机侧边静音键，把媒体音量调大，再点一次测试。</div>
@@ -394,6 +394,7 @@
 <script src="../cloud.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
+<script src="../tts.js"></script>
 <script src="data.js"></script>
 <script>
 const ALL = window.POEM_DATA || [];
@@ -508,109 +509,30 @@ function markRecent(id){
 }
 function recentCount(){ return getRecent().length; }
 
-/* ---------------- 预录音频播放 + 系统朗读兜底 ---------------- */
-const player = new Audio();
-player.preload='auto';
-
-/* 系统朗读（TTS）：没有音频文件的时间，用手机自带普通话声音念文字 */
-let ttsVoice=null;
-function pickVoice(){
-  try{
-    const vs=window.speechSynthesis?speechSynthesis.getVoices():[];
-    ttsVoice = vs.find(v=>/zh[-_]CN/i.test(v.lang)&&/tingting|xiaoxiao|huihui|yaoyao|female|女/i.test(v.name))
-            || vs.find(v=>/zh[-_]CN/i.test(v.lang))
-            || vs.find(v=>/^zh/i.test(v.lang)) || null;
-  }catch(e){}
-}
-/* 安卓/主屏App 的常见坑：声音列表异步加载、首次朗读被吞。
-   这里做两件事：① 用户第一次点屏幕时用一个空的短句"解锁"朗读引擎；
-   ② 真正朗读时若列表还没就绪，给一次自动重试。 */
-let ttsUnlocked=false;
-function unlockTTS(){
-  if(ttsUnlocked) return;
-  ttsUnlocked=true;
-  try{
-    if(!('speechSynthesis' in window)) return;
-    pickVoice();
-    const warm=new SpeechSynthesisUtterance(' ');
-    warm.lang='zh-CN'; warm.volume=0; warm.rate=1;
-    speechSynthesis.speak(warm);
-  }catch(e){}
-}
-if('speechSynthesis' in window){
-  pickVoice();
-  speechSynthesis.onvoiceschanged=pickVoice;
-  document.addEventListener('touchstart', unlockTTS, {passive:true, once:true});
-  document.addEventListener('mousedown', unlockTTS, {once:true});
-}
-function ttsHint(msg){
-  const n=document.getElementById('notice');
-  if(!n) return;
-  n.textContent=msg;
-  n.classList.add('show');
-}
+/* ---------------- 系统朗读（TTS）：全部内容由浏览器/系统语音朗读 ---------------- */
 function ttsSpeak(text, onended){
-  if(!text){ if(onended) onended(); return; }
-  /* 优先用 App 注入的原生朗读桥接（安卓系统 TTS，不受浏览器限制） */
-  if(window.KexinTTS && typeof window.KexinTTS.speak==='function'){
-    try{ ttsHint('正在朗读（手机系统声音）…'); window.KexinTTS.speak(String(text)); }catch(e){}
-    if(onended) onended();
-    return;
-  }
-  if(!('speechSynthesis' in window)){ ttsHint('这个浏览器不支持朗读，请用 Chrome 或 App 打开'); if(onended) onended(); return; }
-  unlockTTS();
-  let tries=0;
-  function doSpeak(){
-    tries++;
-    try{
-      speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(String(text));
-      u.lang='zh-CN'; u.rate=0.85; u.pitch=1.05; u.volume=1;
-      pickVoice();
-      if(ttsVoice) u.voice=ttsVoice;
-      let finished=false;
-      u.onstart=()=>{ finished=true; };
-      u.onend=()=>{ clearHighlight(); if(onended) onended(); };
-      u.onerror=(ev)=>{
-        if(finished) return;
-        /* 安卓第一次常报 interrupted/synthesis-failed，重试一次 */
-        if(tries<2){ setTimeout(doSpeak, 250); return; }
-        ttsHint('朗读没启动，检查一下手机媒体音量，或换 Chrome 打开');
-        if(onended) onended();
-      };
-      speechSynthesis.speak(u);
-      /* 兜底：若 1.2 秒还没真正开始，重试一次 */
-      if(tries<2) setTimeout(function(){ if(!finished) doSpeak(); }, 1200);
-    }catch(e){
-      if(tries<2){ setTimeout(doSpeak, 250); return; }
-      ttsHint('朗读出错，请换 Chrome 或主屏 App 再试');
-      if(onended) onended();
-    }
-  }
-  ttsHint('正在朗读（手机自带声音）…');
-  doSpeak();
+  KX_TTS.speak(text, { onend: onended });
 }
-/* 有 tts 标记的诗（没录音频）：点击时直接同步朗读。
-   必须在用户点击的同步调用链里 speak，放进音频异步回调里手机会拦掉没声音。 */
-function playOrSpeak(p, audioSrc, text, onended, onerror){
-  if(p && p.tts){ ttsSpeak(text, onended); return; }
-  playAudio(audioSrc, onended, onerror, {text:text});
+/* 音频地址 → 文本：预录音频已移除，按文件名规则还原要朗读的文字 */
+function audioText(src){
+  var m=/^audio\/p(\d+)(?:_(\d+))?\.mp3$/.exec(src);
+  if(m){ var p=byId('p'+m[1]); if(!p) return '';
+    if(m[2]) return (p.lines[Number(m[2])-1]||{}).hz||'';
+    return wholeText(p); }
+  m=/^audio\/m(\d+)\.mp3$/.exec(src);
+  if(m){ var pm=byId('p'+m[1]); return (pm&&pm.meaning)||''; }
+  m=/^audio\/t(\d+)\.mp3$/.exec(src);
+  if(m){ var pt=byId('p'+m[1]); return pt?((pt.title||'')+'，'+(pt.author||'')):''; }
+  if(src==='audio/test.mp3') return '你好呀，听到这句话就说明朗读正常！';
+  return null;
 }
-/* fallback={text:'要念的文字'}：音频加载失败时自动转系统朗读，只兜底一次 */
+/* 兼容旧调用：playAudio(音频地址, 结束回调, 失败回调, {text:'朗读文字'}) */
 function playAudio(src, onended, onerror, fallback){
-  let didFallback=false;
-  function fb(){ if(didFallback) return; didFallback=true; if(fallback&&fallback.text) ttsSpeak(fallback.text,onended); }
-  try{
-    player.pause();
-    player.onended=null; player.onerror=null;
-    player.src=src; player.load();
-    player.onended=onended||null;
-    player.onerror=function(e){ if(fallback&&fallback.text) fb(); else if(onerror) onerror(e); };
-    const p=player.play();
-    if(p&&p.catch) p.catch(()=>{ if(fallback&&fallback.text) fb(); });
-  }catch(e){ if(fallback&&fallback.text) fb(); }
+  var text=(fallback&&fallback.text!=null)?fallback.text:audioText(src);
+  if(text){ ttsSpeak(text, onended); return; }
+  if(onended) onended();
 }
-function stopAudio(){ try{ player.pause(); }catch(e){} try{ if('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){} try{ if(window.KexinTTS&&window.KexinTTS.stop) window.KexinTTS.stop(); }catch(e){} }
+function stopAudio(){ KX_TTS.stop(); }
 let chainActive=false, currentId=null;
 function byId(id){ return ALL.find(p=>p.id===id); }
 function voiceNotice(msg){ const n=document.getElementById('notice'); n.textContent=msg; n.classList.add('show'); }
@@ -619,32 +541,29 @@ const IN_WECHAT = /MicroMessenger/i.test(UA);
 if(IN_WECHAT){
   const n=document.getElementById('notice');
   n.classList.add('show','wx');
-  n.innerHTML='<b>微信里也能听声音啦</b>'
-    +'<span>这一页用的是提前录好的声音，不靠浏览器朗读，微信里直接就能听。第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
+  n.innerHTML='<b>微信里也能听朗读啦</b>'
+    +'<span>这一页用手机自带的声音念诗，第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
     +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
 }
 function wholeText(p){ return p.lines.map(l=>l.hz).join(''); }
 function playPoem(){
   const p=byId(currentId); if(!p) return;
-  playOrSpeak(p, 'audio/'+p.id+'.mp3', wholeText(p), clearHighlight);
+  ttsSpeak(wholeText(p), clearHighlight);
 }
-/* 点单句：只念这一句并高亮；若该句录音缺失，先用系统朗读念这句，再不行降级整首 */
+/* 点单句：念这一句并高亮 */
 function speakLine(i){
   const p=byId(currentId); if(!p) return;
   clearHighlight();
   const el=document.querySelector('.line[data-i="'+i+'"]');
   if(el) el.classList.add('speaking');
-  if(p && p.tts){ ttsSpeak((p.lines[i]&&p.lines[i].hz)||'', clearHighlight); return; }
-  playAudio('audio/'+p.id+'_'+(i+1)+'.mp3', clearHighlight,
-    ()=>{ playAudio('audio/'+p.id+'.mp3', clearHighlight, null, {text:wholeText(p)}); },
-    {text:(p.lines[i]&&p.lines[i].hz)||''});
+  ttsSpeak((p.lines[i]&&p.lines[i].hz)||'', clearHighlight);
 }
-/* 整首：仍用整段录音，避免手机上连续切换音频被浏览器拦掉；录音缺失时系统朗读整首 */
+/* 整首：整首连念 */
 function speakWhole(){
   const p=byId(currentId); if(!p) return;
   clearHighlight();
   document.querySelectorAll('.line').forEach(el=>el.classList.add('speaking'));
-  playOrSpeak(p, 'audio/'+p.id+'.mp3', wholeText(p), clearHighlight);
+  ttsSpeak(wholeText(p), clearHighlight);
 }
 function clearHighlight(){ document.querySelectorAll('.line.speaking').forEach(el=>el.classList.remove('speaking')); }
 function setPlaying(on){
@@ -656,19 +575,19 @@ function stopAll(){ chainActive=false; stopAudio(); clearHighlight(); setPlaying
 function speakMean(){
   stopAll();
   const p = byId(currentId); if(!p) return;
-  playOrSpeak(p, 'audio/' + p.id.replace('p','m') + '.mp3', p.meaning||'', null);
+  ttsSpeak(p.meaning||'');
 }
 function speakTitle(){
   stopAll();
   const p = byId(currentId); if(!p) return;
-  playOrSpeak(p, 'audio/' + p.id.replace('p','t') + '.mp3', (p.title||'')+'，'+(p.author||''), null);
+  ttsSpeak((p.title||'')+'，'+(p.author||''));
 }
 function renderVoicePanel(){
   const test=document.getElementById('voiceTest');
   if(test) test.onclick=()=>{
-    playAudio('audio/test.mp3');
+    ttsSpeak('你好呀，听到这句话就说明朗读正常！');
     const st=document.getElementById('voiceStatus');
-    if(st) st.textContent='正在播放…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
+    if(st) st.textContent='正在朗读…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
   };
 }
 function openVoice(){ renderVoicePanel(); document.getElementById('voiceMask').classList.add('show'); }
@@ -977,8 +896,8 @@ applyFilter();
 <script>
 (function(){
   var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
-  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
-  var audio=null,timer=0;
+  var PRAISE=['你真棒！','太厉害啦！','好聪明呀！','真不错哦！','可心最棒啦！'];
+  var timer=0;
   var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
   if(!box||!say) return;
   /* 全屏彩纸（完成大事时用） */
@@ -1000,9 +919,7 @@ applyFilter();
   /* 随机表扬语音 */
   window.praiseOnce=function(){
     try{
-      if(audio){ audio.pause(); audio=null; }
-      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   };
   box.addEventListener('click',function(){
@@ -1011,10 +928,7 @@ applyFilter();
     say.classList.add('show');
     clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
     try{
-      if(audio){ audio.pause(); audio=null; }
-      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
-      audio=new Audio(src);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(Math.random()<.45?'你好呀，可心！':PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   });
 })();
@@ -1107,7 +1021,7 @@ applyFilter();
       starEl=document.getElementById('cgStar'), titleEl=document.getElementById('cgTitle'),
       subEl=document.getElementById('cgSub'), replay=document.getElementById('cgReplay'),
       actions=document.getElementById('cgActions');
-  var gAudio=null, gAC=null, deck=[], qi=0, stars=0, locked=false, curIdx=0;
+  var gAC=null, deck=[], qi=0, stars=0, locked=false, curIdx=0;
 
   function loadSet(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
   function saveChar(ch){
@@ -1133,17 +1047,20 @@ applyFilter();
   function okSound(){ tone(520,.14,'sine',.07); tone(780,.2,'sine',.05,.08); }
   function noSound(){ tone(220,.18,'triangle',.06); }
   function gplay(src,cb){
-    try{
-      if(gAudio){ gAudio.pause(); gAudio=null; }
-      try{ if(typeof player!=='undefined'&&player) player.pause(); }catch(e){}
-      gAudio=new Audio(src);
-      gAudio.onended=function(){ if(cb)cb(); };
-      gAudio.onerror=function(){ if(cb)cb(); };
-      var p=gAudio.play(); if(p&&p.catch)p.catch(function(){});
-    }catch(e){ if(cb)cb(); }
+    KX_TTS.stop();
+    var t=null;
+    var m=/^audio\/p(\d+)_(\d+)\.mp3$/.exec(src);
+    if(m){ var p=byId('p'+m[1]); t=p?((p.lines[Number(m[2])-1]||{}).hz||''):''; }
+    else if(/^audio\/g\d{3}\.mp3$/.test(src)){
+      var i=Number(src.slice(7,10))-1;
+      t=(i>=0&&i<POOL.length)?('找一找字宝宝「'+POOL[i].ch+'」哦'):'';
+    }
+    if(t){ KX_TTS.speak(t,{onend:cb}); return; }
+    if(cb) cb();
   }
-  function gstop(){ try{ if(gAudio){ gAudio.pause(); gAudio=null; } }catch(e){} }
+  function gstop(){ KX_TTS.stop(); }
   function promptSrc(i){ return 'audio/g'+('00'+(i+1)).slice(-3)+'.mp3'; }
+  function gWrong(){ KX_TTS.stop(); KX_TTS.speak('再想一想哦～'); }
   function renderDots(){
     var h='';
     for(var i=0;i<N;i++) h+='<span class="cg-dot'+(i<qi?' ok':'')+'"></span>';
@@ -1197,7 +1114,7 @@ applyFilter();
       btn.classList.add('wiggle');
       setTimeout(function(){ btn.classList.remove('wiggle'); },420);
       noSound(); tip.textContent='再想一想哦～';
-      gplay('audio/g048.mp3');
+      gWrong();
       if(window.KX_FUN) KX_FUN.hit(false);
     }
   }
@@ -1332,7 +1249,7 @@ applyFilter();
       setTimeout(function(){ btn.classList.remove('wiggle'); },420);
       $('picTip').textContent='再听一遍，看看诗里说的是什么～';
       if(window.KX_FUN) KX_FUN.hit(false);
-      playAudio('audio/g048.mp3');
+      ttsSpeak('再想一想哦～');
     }
   }
   function next(){

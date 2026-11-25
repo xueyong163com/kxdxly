@@ -113,24 +113,6 @@
   .note{margin-top:28px;background:rgba(255,253,246,.8);border:1.5px dashed var(--line);
         border-radius:16px;padding:14px 16px;font-size:12px;color:var(--soft);line-height:1.9}
   .note b{color:var(--ink);font-weight:600}
-  /* 离线下载卡片 */
-  .dl-card{margin-top:18px;background:var(--card);border:2.5px solid var(--ink);border-radius:22px;
-    box-shadow:5px 6px 0 rgba(47,59,51,.16);padding:16px}
-  .dl-head{display:flex;align-items:center;gap:12px}
-  .dl-seal{width:44px;height:44px;flex:none;border:2.5px solid #3E7F96;border-radius:12px;color:#3E7F96;
-    font-family:var(--kai);font-size:25px;line-height:40px;text-align:center;transform:rotate(-6deg)}
-  .dl-head h2{font-family:var(--kai);font-size:19px;margin:0;letter-spacing:1px}
-  .dl-head p{margin:3px 0 0;font-size:12px;color:var(--soft)}
-  .dl-status{margin:12px 0 8px;font-size:13px;color:var(--ink);line-height:1.5}
-  .dl-bar{height:12px;border:2px solid var(--line);border-radius:10px;background:#F4EEDC;overflow:hidden}
-  .dl-fill{height:100%;width:0;background:#7FB3D9;transition:width .25s ease}
-  .dl-actions{display:flex;gap:10px;margin-top:12px}
-  .dl-actions button{flex:1;min-height:42px;border:none;border-radius:12px;font-family:inherit;font-size:14px;
-    font-weight:700;cursor:pointer;background:#3E7F96;color:#FFFDF6;box-shadow:0 3px 0 rgba(62,127,150,.3)}
-  .dl-actions button:active{transform:translateY(2px);box-shadow:none}
-  .dl-actions button.ghost{background:var(--card);color:var(--soft);border:2px solid var(--line);box-shadow:none}
-  .dl-actions button:disabled{opacity:.5;cursor:default}
-  .dl-tip{margin:10px 0 0;font-size:11px;color:var(--faint);line-height:1.6}
   footer{margin-top:18px;text-align:center;font-size:11px;color:var(--faint);letter-spacing:.5px}
   .parent-btn{margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;
     height:36px;padding:0 10px;border:2px solid var(--line);border-radius:12px;
@@ -335,25 +317,9 @@
   </section>
 
   <div class="note">
-    <b>给家长：</b>上面七个都在这个地址下面，<b>以后只记这一个网址</b>就行，点卡片进去，按手机的返回键就能回到这里。学习页用的是提前录好的音频，赛车页是即时音效，微信里直接打开也能听；七个页面都不需要登录。为了家长能跨设备管理和限时，页面会记录<b>每个模块玩了多久</b>（只有时长，不记内容、不记姓名），时间数据存在这个网址自己的云端空间里。想看看每天玩了多久、给赛车定个时间，点<b>页面右上角的「家长设置」</b>输入密码就能进家长控制台。
+    <b>给家长：</b>上面七个都在这个地址下面，<b>以后只记这一个网址</b>就行，点卡片进去，按手机的返回键就能回到这里。学习页用<b>手机自带的声音</b>朗读内容，不需要下载任何音频，微信里直接打开也能听；七个页面都不需要登录。为了家长能跨设备管理和限时，页面会记录<b>每个模块玩了多久</b>（只有时长，不记内容、不记姓名），时间数据存在这个网址自己的云端空间里。想看看每天玩了多久、给赛车定个时间，点<b>页面右上角的「家长设置」</b>输入密码就能进家长控制台。
   </div>
 
-  <section class="dl-card" id="dlCard">
-    <div class="dl-head">
-      <span class="dl-seal">载</span>
-      <div>
-        <h2>离线下载 · 一次下好全部内容</h2>
-        <p>把 7 个模块的音频都存到手机，之后没网也能玩</p>
-      </div>
-    </div>
-    <div class="dl-status" id="dlStatus">还没下载。全部约 163 MB，建议连 Wi-Fi 时下载。</div>
-    <div class="dl-bar"><div class="dl-fill" id="dlFill"></div></div>
-    <div class="dl-actions">
-      <button id="dlBtn" type="button">一键下载全部</button>
-      <button id="dlStop" type="button" class="ghost" style="display:none">暂停</button>
-    </div>
-    <p class="dl-tip" id="dlTip">下载会占手机约 163 MB 空间，过程中别关掉页面。已下载的内容不会因为App更新而丢失。以后内容有变化，点「检查更新」只会重新下载改过的那几个，不会全部重来。</p>
-  </section>
   <footer>可心的小乐园 · 七个小地方，一个入口</footer>
 </div>
 
@@ -462,114 +428,16 @@
   var d=new Date();
   var kIdx=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%KNOWS.length;
   document.getElementById('dText').textContent=KNOWS[kIdx];
-  var dAudio=null;
   document.getElementById('dPlay').onclick=function(){
-    try{
-      if(dAudio){ dAudio.pause(); dAudio=null; }
-      dAudio=new Audio('racing/audio/k'+('0'+(kIdx+1)).slice(-2)+'.mp3');
-      var p=dAudio.play(); if(p&&p.catch)p.catch(function(){});
-    }catch(e){}
+    try{ KX_TTS.speak(KNOWS[kIdx]); }catch(e){}
   };
 })();
 </script>
 <script src="cloud.js"></script>
 <script src="fun.js"></script>
+<script src="tts.js"></script>
 <script src="admin-panel.js"></script>
   <script>if("serviceWorker" in navigator && !/KexinApp/i.test(navigator.userAgent)){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>
-<script>
-/* ---------------- 一键离线下载：把全部音频缓存到手机 ----------------
-   缓存池固定名 kexin-audio-v1，与 sw.js 的 AUDIO 一致。
-   每个音频带内容指纹(MD5)：已缓存且指纹一致→跳过；内容变了→重新下。
-   这样重录某个音频后，点一次就能只更新变了的那几个。
-   分批并发 + 可暂停 + 断点续传；进度/指纹存 localStorage。 */
-(function(){
-  var POOL='kexin-audio-v1';
-  var items=[], idx=0, done=0, updated=0, failed=0, total=0, running=false, wantStop=false;
-  var CONC=6;
-  var $=function(id){ return document.getElementById(id); };
-  var btn=$('dlBtn'), stopBtn=$('dlStop'), statusEl=$('dlStatus'), fill=$('dlFill'), tip=$('dlTip');
-  if(!btn) return;
-
-  function fmtMB(n){ return (n/1024/1024).toFixed(1)+' MB'; }
-  function setStatus(t){ statusEl.textContent=t; }
-  function setProgress(cur,tot){ fill.style.width = tot ? Math.round(cur/tot*100)+'%' : '0%'; }
-  function loadState(){ try{ return JSON.parse(localStorage.getItem('kx_dl_state')||'{}'); }catch(e){ return {}; } }
-  function saveState(){ try{ localStorage.setItem('kx_dl_state', JSON.stringify({done:done,total:total,ts:Date.now()})); }catch(e){} }
-  function getHashes(){ try{ return JSON.parse(localStorage.getItem('kx_dl_hashes')||'{}'); }catch(e){ return {}; } }
-  function saveHash(u,h){ try{ var m=getHashes(); m[u]=h; localStorage.setItem('kx_dl_hashes',JSON.stringify(m)); }catch(e){} }
-  function showDoneState(){
-    var st=loadState();
-    if(st.total && st.done>=st.total){
-      setStatus('已下载全部 '+st.total+' 个音频，没网也能玩啦。改了内容后点「检查更新」即可只更变化的部分。');
-      setProgress(st.total, st.total); btn.textContent='检查更新'; btn.disabled=false;
-    }else if(st.done){
-      setStatus('上次下载到 '+st.done+' / '+st.total+'，点按钮接着下。');
-      setProgress(st.done, st.total);
-    }
-  }
-  // 已缓存且指纹匹配才跳过
-  function isFresh(url, hash){
-    return caches.open(POOL).then(function(c){
-      return c.match(url).then(function(hit){ return !!hit && getHashes()[url]===hash; });
-    });
-  }
-  function worker(){
-    if(wantStop || idx>=items.length) return Promise.resolve();
-    var it=items[idx++];
-    return isFresh(it.u, it.h).then(function(fresh){
-      if(fresh){ done++; return; }          // 内容没变，跳过
-      return fetch(it.u+'?t='+Date.now()).then(function(resp){
-        if(!resp.ok) throw new Error('http '+resp.status);
-        return caches.open(POOL).then(function(c){ return c.put(it.u, resp); });
-      }).then(function(){ saveHash(it.u,it.h); done++; updated++; })
-        .catch(function(){ failed++; });
-    }).then(function(){
-      if(done%10===0 || done===items.length){
-        setStatus('正在检查 '+done+' / '+total+'（新下/更新 '+updated+'，失败 '+failed+'）…');
-        setProgress(done,total); saveState();
-      }
-      return worker();
-    });
-  }
-  function start(){
-    if(running) return;
-    running=true; wantStop=false; btn.disabled=true; stopBtn.style.display='';
-    setStatus('正在读取下载清单…');
-    fetch('all-audio.json?t='+Date.now()).then(function(r){
-      if(!r.ok) throw new Error('清单读取失败'); return r.json();
-    }).then(function(data){
-      // 兼容新旧两种清单：新={v,files:[{u,h}]} 旧=[url]
-      if(Array.isArray(data)) items=data.map(function(u){ return {u:u,h:''}; });
-      else items=(data.files||[]).map(function(f){ return {u:f.u,h:f.h||''}; });
-      total=items.length; idx=0; failed=0; done=0; updated=0;
-      setStatus('正在检查 '+total+' 个音频，只下载新增或变化的（请保持页面打开）…'); setProgress(0,total);
-      var jobs=[]; for(var i=0;i<CONC;i++) jobs.push(worker());
-      return Promise.all(jobs);
-    }).then(function(){
-      running=false; stopBtn.style.display='none'; btn.disabled=false;
-      if(wantStop){
-        setStatus('已暂停，已检查 '+done+' / '+total+'。下次点按钮接着下。'); btn.textContent='继续下载';
-      }else{
-        saveState();
-        setStatus(updated ? ('完成！新下载/更新了 '+updated+' 个音频，现在没网也能玩啦。')
-                          : ('完成！全部 '+total+' 个音频都是最新的，没网也能玩啦。'));
-        setProgress(done,total); btn.textContent='检查更新';
-      }
-    }).catch(function(e){
-      running=false; stopBtn.style.display='none'; btn.disabled=false;
-      setStatus('出问题了：'+e.message+'，请重试。');
-    });
-  }
-  btn.addEventListener('click',start);
-  stopBtn.addEventListener('click',function(){ wantStop=true; stopBtn.disabled=true; setStatus('正在暂停…'); });
-  if(navigator.storage && navigator.storage.estimate){
-    navigator.storage.estimate().then(function(e){
-      if(e.usage) tip.textContent='已用空间 '+fmtMB(e.usage)+'。'+tip.textContent;
-    }).catch(function(){});
-  }
-  showDoneState();
-})();
-</script>
 <script src="/tapread.js"></script>
 </body>
 </html>

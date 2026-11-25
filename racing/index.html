@@ -263,6 +263,7 @@
 <script src="../cloud.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
+<script src="../tts.js"></script>
 <script>
 (function(){
   'use strict';
@@ -398,7 +399,7 @@
   var player = {x:160,y:340,w:52,h:78,tilt:0};
   var items = [], parts = [], deco = [], ambient = [], floats = [], confetti = [];
   var stars = 0, bumps = 0, inv = 0, slow = 0, spawnT = .6, offset = 0, elapsed = 0;
-  var combo = 0, knowCount = 0, knowIdx = 0, knowAudio = null, knowTimer = 0, exhT = 0;
+  var combo = 0, knowCount = 0, knowIdx = 0, knowTimer = 0, exhT = 0;
   var boost = 0, coins = 0, coinTotal = 0, peek = null, magnet = 0;
   var COIN_KEY = 'kexin_racing_coins';
   try{ coinTotal = clamp(Number(localStorage.getItem(COIN_KEY))||0, 0, 999999); }catch(e){}
@@ -1176,7 +1177,6 @@
     var use = {d:'', used:0, lock:'', hist:{}};
     var cloudCfg = null, cloudOthers = 0;        /* 云端配置 + 其它终端今日赛车合计秒数 */
     var triggered = false, warned5 = false, warned1 = false, saveT = 0, frozenByTC = false;
-    var warnAudio = null, timeAudio = null;
     function today(){
       var d = new Date();
       return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
@@ -1233,25 +1233,17 @@
       frozenByTC = false;
     }
     function playTimeup(){
-      try{
-        if(timeAudio){ timeAudio.pause(); timeAudio = null; }
-        timeAudio = new Audio('audio/tc_timeup.mp3');
-        var p = timeAudio.play(); if(p && p.catch) p.catch(function(){});
-      }catch(e){}
+      try{ KX_TTS.speak('时间到啦！休息一下吧'); }catch(e){}
     }
     function playWarn(){
-      try{
-        if(warnAudio){ warnAudio.pause(); warnAudio = null; }
-        warnAudio = new Audio('audio/tc_warn.mp3');
-        var p = warnAudio.play(); if(p && p.catch) p.catch(function(){});
-      }catch(e){}
+      try{ KX_TTS.speak('还剩最后十秒啦，加油！'); }catch(e){}
     }
     function trigger(){
       if(triggered) return;
       triggered = true;
       saveUse();
       if(window.KX_CLOUD) KX_CLOUD.report('racing', Number(use.used)||0);
-      try{ if(warnAudio){ warnAudio.pause(); } }catch(e){}
+      try{ KX_TTS.stop(); }catch(e){}
       freezeIfPlaying();
       show();
       playTimeup();
@@ -1349,20 +1341,15 @@
     sfxKnow();
     el('knowTxt').textContent = KNOWS[k];
     el('knowCard').classList.remove('hide');
-    var src = 'audio/k' + ('0'+(k+1)).slice(-2) + '.mp3';
     clearTimeout(knowTimer);
-    try{ if(knowAudio){ knowAudio.pause(); knowAudio = null; } }catch(e){}
     try{
-      knowAudio = new Audio(src);
-      knowAudio.onended = function(){ knowTimer = setTimeout(closeKnow, 1200); };
-      knowAudio.onerror = function(){ knowTimer = setTimeout(closeKnow, 6000); };
-      var pr = knowAudio.play(); if(pr && pr.catch) pr.catch(function(){});
+      KX_TTS.speak(KNOWS[k], { onend: function(){ knowTimer = setTimeout(closeKnow, 1200); } });
     }catch(e){ knowTimer = setTimeout(closeKnow, 6000); }
-    knowTimer = setTimeout(closeKnow, 15000); /* 兜底：极端情况下 15 秒后收起 */
+    knowTimer = setTimeout(closeKnow, 20000); /* 兜底：极端情况下 20 秒后收起 */
   }
   function closeKnow(){
     clearTimeout(knowTimer);
-    try{ if(knowAudio){ knowAudio.pause(); knowAudio = null; } }catch(e){}
+    KX_TTS.stop();
     el('knowCard').classList.add('hide');
   }
   function update(dt){
@@ -1629,10 +1616,7 @@
 
   el('lockBtn').addEventListener('click',function(){
     if(TC.blocked()){
-      try{
-        var a = new Audio('audio/tc_timeup.mp3');
-        var p = a.play(); if(p && p.catch) p.catch(function(){});
-      }catch(e){}
+      try{ KX_TTS.speak('时间到啦！休息一下吧'); }catch(e){}
     }else{
       TC.hideResume();
     }
@@ -1679,8 +1663,8 @@
 <script>
 (function(){
   var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
-  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
-  var audio=null,timer=0;
+  var PRAISE=['你真棒！','太厉害啦！','好聪明呀！','真不错哦！','可心最棒啦！'];
+  var timer=0;
   var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
   if(!box||!say) return;
   /* 全屏彩纸（完成大事时用） */
@@ -1702,9 +1686,7 @@
   /* 随机表扬语音 */
   window.praiseOnce=function(){
     try{
-      if(audio){ audio.pause(); audio=null; }
-      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   };
   box.addEventListener('click',function(){
@@ -1713,10 +1695,7 @@
     say.classList.add('show');
     clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
     try{
-      if(audio){ audio.pause(); audio=null; }
-      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
-      audio=new Audio(src);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(Math.random()<.45?'你好呀，可心！':PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   });
 })();

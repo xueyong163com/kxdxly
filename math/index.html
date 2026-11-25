@@ -452,7 +452,7 @@
     </div>
     <div class="level-grid" id="levelGrid"></div>
     <div class="parent-note">
-      <b>给家长：</b>一共 <b>33 关 330 题</b>。第 1~20 关从数一数、比多少，一路学到二十以内加减法、凑十法、找规律；第 21~33 关是更多学习类型——认形状、图形找一找、上下左右、比长短高低轻重、排第几（序数）、谁最大、认识钟表（整点）、认识人民币、认识零、图形规律、分类、成组数（乘法启蒙）、单双数。每题都会<strong>自动念题目</strong>，孩子不识字也能玩：看图、听题、点答案。答对得一颗小星星（每题只发一次），答错会抖一抖并重听题目，多试几次就好。进了关卡听不清时，点下面的「再听一遍」。所有声音都是提前录好的，微信里直接打开就能听；第一次先点一下屏幕，没声音就关掉静音键、调大媒体音量。
+      <b>给家长：</b>一共 <b>33 关 330 题</b>。第 1~20 关从数一数、比多少，一路学到二十以内加减法、凑十法、找规律；第 21~33 关是更多学习类型——认形状、图形找一找、上下左右、比长短高低轻重、排第几（序数）、谁最大、认识钟表（整点）、认识人民币、认识零、图形规律、分类、成组数（乘法启蒙）、单双数。每题都会<strong>自动念题目</strong>，孩子不识字也能玩：看图、听题、点答案。答对得一颗小星星（每题只发一次），答错会抖一抖并重听题目，多试几次就好。进了关卡听不清时，点下面的「再听一遍」。所有题目由<strong>手机自带语音</strong>自动朗读，微信里直接打开就能听；第一次先点一下屏幕，没声音就关掉静音键、调大媒体音量。
     </div>
   </section>
 
@@ -488,7 +488,7 @@
       <h3 id="voiceTitle">声音说明</h3>
       <button class="vp-close" id="voiceClose" aria-label="关闭">×</button>
     </div>
-    <p class="vp-desc">这一页用的是<strong>提前录好的声音</strong>，不依赖浏览器朗读，所以微信里、各种手机浏览器里都能听。</p>
+    <p class="vp-desc">这一页用<strong>手机自带的声音</strong>朗读，微信里、各种手机浏览器里都能听。</p>
     <div class="vp-empty" id="voiceStatus">点下面的按钮试一下，听到「你好」就说明声音正常。</div>
     <button class="vp-default" id="voiceTest">▶ 测试一下声音</button>
     <div class="vp-foot">没声音时：关掉手机侧边静音键，把媒体音量调大，再点一次测试。</div>
@@ -498,6 +498,7 @@
 <script src="../cloud.js"></script>
 <script src="../usage.js"></script>
 <script src="../fun.js"></script>
+<script src="../tts.js"></script>
 <script src="data.js?v=2"></script>
 <script>
 const META = window.MATH_META || {total:0, levels:[]};
@@ -615,17 +616,36 @@ function getStars(){ return readJSON(STAR_KEY); }
 function addStar(id){ const s=getStars(); if(s[id]) return false; s[id]=1; writeJSON(STAR_KEY,s); return true; }
 function refreshStars(){ document.getElementById('starCount').textContent = Object.keys(getStars()).length; }
 
-/* ---------------- 音频 ---------------- */
-const player = new Audio();
-player.preload = 'auto';
-function playAudio(src){
-  try{
-    player.onended = null;
-    player.pause(); player.src = src; player.load();
-    const p = player.play(); if(p && p.catch) p.catch(()=>{});
-  }catch(e){}
+/* ---------------- 系统朗读（TTS）：全部内容由浏览器/系统语音朗读 ---------------- */
+const NUM_ZH=['零','一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'];
+const SHAPE_ZH={circle:'圆形',tri:'三角形',square:'正方形',rect:'长方形',star:'星星',heart:'爱心'};
+const DIR_ZH={top:'上面',bottom:'下面',left:'左边',right:'右边'};
+function numText(v){ return NUM_ZH[v]!=null?NUM_ZH[v]:String(v); }
+/* 音频地址 → 文本：n/d 读数字，s 读形状，w 读方位，mXXX 读题目的 say，lvXX 读关卡名 */
+function audioText(src){
+  var m=/^audio\/n(\d{2})\.mp3$/.exec(src);
+  if(m) return numText(Number(m[1]));
+  m=/^audio\/d(\d{2})\.mp3$/.exec(src);
+  if(m) return numText(Number(m[1]));
+  m=/^audio\/s(\d{2})\.mp3$/.exec(src);
+  if(m){ var sp=SHAPE_ORDER[Number(m[1])-1]; return sp?(SHAPE_ZH[sp]||''):''; }
+  m=/^audio\/w(\d{2})\.mp3$/.exec(src);
+  if(m){ var dz=DIR_ORDER[Number(m[1])-1]; return dz?(DIR_ZH[dz]||''):''; }
+  m=/^audio\/m(\d{3})\.mp3$/.exec(src);
+  if(m){ var q=(typeof DATA!=='undefined')?DATA.find(x=>x.id==='m'+m[1]):null; return q?(q.say||''):''; }
+  if(/^audio\/lv\d+\.mp3$/.test(src)){
+    var lv=(META.levels||[]).find(l=>l.key===src.slice(6,-4));
+    return lv?(lv.name+'，'+lv.sub):'';
+  }
+  if(src==='audio/test.mp3') return '你好呀，听到这句话就说明朗读正常！';
+  return null;
 }
-function stopAudio(){ try{ player.onended=null; player.pause(); }catch(e){} }
+function playAudio(src, onended){
+  const t=audioText(src);
+  if(t!=null){ if(t) KX_TTS.speak(t,{onend:onended}); else if(onended) onended(); return; }
+  if(onended) onended();
+}
+function stopAudio(){ KX_TTS.stop(); }
 function tone(f, d, delay){
   try{
     const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
@@ -649,7 +669,7 @@ if(/MicroMessenger/i.test(UA)){
   const n = document.getElementById('notice');
   n.classList.add('show','wx');
   n.innerHTML = '<b>微信里也能听声音啦</b>'
-    +'<span>这一页用的是提前录好的声音，微信里直接就能听。第一次打开先点一下屏幕，再点关卡就开始了。</span>'
+    +'<span>这一页用手机自带的声音念题，微信里直接就能听。第一次打开先点一下屏幕，再点关卡就开始了。</span>'
     +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
 }
 
@@ -737,9 +757,7 @@ function openLevel(key){
   document.getElementById('qTotal').textContent = state.qs.length;
   show('play');
   renderQ();
-  playAudio('audio/'+key+'.mp3');
-  player.onended = ()=>{ playSay(); };
-  nextTimer = setTimeout(()=>{ if(player.paused) playSay(); }, 3000);
+  playAudio('audio/'+key+'.mp3', ()=>{ playSay(); });
 }
 function playSay(){
   const q = qOf(); if(!q) return;
@@ -1179,7 +1197,7 @@ document.getElementById('voiceMask').addEventListener('click', e=>{
 document.getElementById('voiceTest').addEventListener('click', ()=>{
   playAudio('audio/test.mp3');
   document.getElementById('voiceStatus').textContent =
-    '正在播放…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
+    '正在朗读…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
 });
 document.addEventListener('keydown', e=>{
   if(e.key!=='Escape') return;
@@ -1231,8 +1249,8 @@ renderMap();
 <script>
 (function(){
   var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
-  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
-  var audio=null,timer=0;
+  var PRAISE=['你真棒！','太厉害啦！','好聪明呀！','真不错哦！','可心最棒啦！'];
+  var timer=0;
   var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
   if(!box||!say) return;
   /* 全屏彩纸（完成大事时用） */
@@ -1254,9 +1272,7 @@ renderMap();
   /* 随机表扬语音 */
   window.praiseOnce=function(){
     try{
-      if(audio){ audio.pause(); audio=null; }
-      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   };
   box.addEventListener('click',function(){
@@ -1265,10 +1281,7 @@ renderMap();
     say.classList.add('show');
     clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
     try{
-      if(audio){ audio.pause(); audio=null; }
-      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
-      audio=new Audio(src);
-      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+      KX_TTS.speak(Math.random()<.45?'你好呀，可心！':PRAISE[Math.floor(Math.random()*PRAISE.length)]);
     }catch(e){}
   });
 })();
