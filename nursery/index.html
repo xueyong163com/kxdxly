@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBF6EA">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="description" content="给幼儿园中班小朋友的儿歌点读绘本：50 首经典童谣，可分类，点一下就念，听完点亮小星星。">
+<title>可心学儿歌</title>
+<style>
+  :root{
+    --paper:#FBF6EA; --card:#FFFDF6; --ink:#2F3B33; --ink-soft:#6B7568;
+    --faint:#96A08D; --yellow:#F2C14E; --yellow-soft:#FDF0C8;
+    --pink:#E9A6A0; --pink-soft:#FCEDEC; --green:#86B49A; --green-soft:#E8F3E9;
+    --blue:#8FB6D9; --blue-soft:#EAF2F8; --orange:#E8A06A; --orange-soft:#FBEFE3;
+    --wood:#E7D9BC; --seal:#C85A4A;
+    --font-song:"STKaiti","KaiTi","Kaiti SC","楷体","Songti SC","SimSun",serif;
+    --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh;background:var(--paper);color:var(--ink);font-family:var(--font-ui);
+    background-image:
+      radial-gradient(circle at 12% 8%,rgba(233,166,160,.14) 0,transparent 34%),
+      radial-gradient(circle at 88% 76%,rgba(242,193,78,.15) 0,transparent 32%),
+      radial-gradient(rgba(120,110,85,.065) .7px,transparent .7px);
+    background-size:auto,auto,9px 9px;
+  }
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  button:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px 72px}
+
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:28px 0 14px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .seal{width:46px;height:46px;border-radius:9px;background:var(--pink);color:#FFF9EC;
+    font-family:var(--font-song);font-size:27px;line-height:46px;text-align:center;
+    transform:rotate(-7deg);box-shadow:2px 3px 0 rgba(200,90,74,.20);flex:none}
+  .brand h1{font-family:var(--font-song);font-size:25px;margin:0;letter-spacing:2px;font-weight:600}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--ink-soft);letter-spacing:1px}
+  .star-box{display:flex;align-items:center;gap:7px;background:var(--card);
+    border:1.5px solid var(--wood);border-radius:999px;padding:8px 15px;
+    font-size:13px;color:var(--ink-soft);transform:translateY(-5px) rotate(3deg);white-space:nowrap}
+  .star-box svg{width:19px;height:19px;fill:var(--yellow);stroke:#C99A32;stroke-width:1}
+  .star-box b{font-size:17px;color:var(--ink);font-family:var(--font-song)}
+
+  .notice{display:none;background:var(--yellow-soft);border:1.5px solid #EBD184;
+    border-radius:12px;padding:11px 15px;font-size:13px;line-height:1.6;color:#7A5E20;margin-bottom:16px}
+  .notice.show{display:block}
+  .notice b{display:block;margin-bottom:3px}
+  .notice em{font-style:normal;color:#A3843C;font-size:12px}
+
+  .intro{position:relative;margin:18px 0 20px;padding-left:16px;border-left:5px solid var(--yellow)}
+  .intro h2{font-family:var(--font-song);font-size:clamp(24px,4.4vw,34px);margin:0;letter-spacing:2px}
+  .intro p{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}
+  .scribble{position:absolute;right:4px;top:2px;font-family:var(--font-song);
+    font-size:14px;color:var(--faint);transform:rotate(-8deg);pointer-events:none}
+  @media(max-width:620px){.scribble{display:none}}
+
+  /* 分类 */
+  .mode-row{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 16px}
+  .mode{border:1.5px solid var(--wood);background:var(--card);border-radius:999px;
+    padding:9px 17px;font-size:14px;color:var(--ink-soft);transition:transform .15s,background .15s}
+  .mode:hover{transform:translateY(-2px)}
+  .mode.active{background:var(--pink);border-color:var(--pink);color:#5C2E28}
+
+  .view{display:none}
+  .view.active{display:block}
+
+  /* 卡片网格 */
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px}
+  @media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:470px){.grid{grid-template-columns:1fr}}
+  .song-card{position:relative;background:var(--card);border:1.5px solid var(--wood);
+    border-radius:18px;padding:17px 17px 16px;text-align:left;min-height:132px;
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+    box-shadow:3px 4px 0 rgba(231,217,188,.5);animation:rise .4s both}
+  .song-card:hover{transform:translateY(-5px) rotate(0deg)!important;
+    box-shadow:5px 9px 0 rgba(231,217,188,.7);border-color:var(--pink)}
+  .song-card:nth-child(3n+1){transform:rotate(-1deg)}
+  .song-card:nth-child(3n+2){transform:rotate(.9deg);margin-top:9px}
+  .song-card:nth-child(3n){transform:rotate(-.5deg);margin-top:3px}
+  @keyframes rise{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+  .card-num{font-size:11.5px;color:var(--faint);letter-spacing:.5px}
+  .card-title{font-family:var(--font-song);font-size:27px;margin:5px 0 1px;letter-spacing:2px;line-height:1.25}
+  .card-first{font-family:var(--font-song);font-size:14px;color:var(--ink-soft);
+    margin-top:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-tags{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+  .tag{font-size:11px;border-radius:999px;padding:3px 9px}
+  .tag.c动物乐园{background:var(--green-soft);color:#4A6B55}
+  .tag.c好习惯{background:var(--blue-soft);color:#3E6284}
+  .tag.c做游戏{background:var(--pink-soft);color:#8A4A42}
+  .tag.c大自然{background:var(--yellow-soft);color:#7A5E20}
+  .tag.c数一数{background:var(--orange-soft);color:#8A5A28}
+  .tag.c老童谣{background:#EFEAF5;color:#5E4A78}
+  .card-done{position:absolute;top:12px;right:12px;width:21px;height:21px;fill:var(--yellow);stroke:#C99A32;stroke-width:1}
+
+  /* 详情 */
+  .detail-top{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
+  .back-btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--wood);
+    background:var(--card);border-radius:999px;padding:9px 16px;font-size:14px;color:var(--ink-soft)}
+  .back-btn:hover{border-color:var(--pink);color:var(--ink)}
+  .back-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+  .poem{position:relative;background:var(--card);border:1.5px solid var(--wood);
+    border-radius:22px;padding:26px 26px 24px;box-shadow:3px 4px 0 rgba(231,217,188,.5)}
+  @media(max-width:470px){.poem{padding:20px 14px 18px}}
+  .poem-title{font-family:var(--font-song);font-size:clamp(30px,6vw,42px);
+    margin:0 0 2px;letter-spacing:4px;line-height:1.2}
+  .poem-cat{display:inline-block;margin:6px 0 16px}
+  .poem-cat .tag{font-size:12px;padding:4px 12px}
+  .lines{display:flex;flex-direction:column;gap:6px}
+  .line{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    border-radius:13px;padding:9px 12px;transition:background .15s}
+  .line:hover{background:var(--yellow-soft)}
+  .line.speaking{background:var(--yellow-soft);box-shadow:inset 0 0 0 2px var(--yellow)}
+  .line.singing{background:var(--pink-soft);box-shadow:inset 0 0 0 2px var(--pink)}
+  .line-num{font-size:11px;color:var(--faint);min-width:20px;flex:none;font-family:var(--font-ui)}
+  .line-txt{font-family:var(--font-song);font-size:clamp(22px,4.6vw,29px);letter-spacing:2.5px;line-height:1.5}
+  .line-tag{width:16px;height:16px;fill:var(--faint);flex:none;opacity:0;transition:opacity .15s}
+  .line:hover .line-tag,.line.speaking .line-tag{opacity:1}
+  .line.speaking .line-tag{fill:#C99A32}
+  .line.singing .line-tag{opacity:1;fill:#B2554A}
+
+  .ctrl-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .ctrl{display:inline-flex;align-items:center;gap:8px;border-radius:999px;
+    padding:12px 22px;font-size:15px;transition:transform .15s}
+  .ctrl:hover{transform:translateY(-2px)}
+  .ctrl svg{width:17px;height:17px}
+  .ctrl.primary{background:var(--pink);color:#FFF9EC;box-shadow:2px 3px 0 rgba(200,90,74,.25)}
+  .ctrl.sing{background:var(--yellow);color:#4A3A16;box-shadow:2px 3px 0 rgba(201,154,50,.3)}
+  .ctrl.plain{background:var(--card);border:1.5px solid var(--wood);color:var(--ink-soft)}
+  .ctrl.plain:hover{border-color:var(--pink);color:var(--ink)}
+  @keyframes popstar{0%{transform:rotate(3deg) scale(1)}45%{transform:rotate(0deg) scale(1.28)}100%{transform:rotate(3deg) scale(1)}}
+  .star-box.pop{animation:popstar .5s ease}
+
+  .cat-tip{margin-top:14px;font-size:13px;color:var(--ink-soft);line-height:1.7}
+  .cat-tip b{color:var(--ink)}
+
+  footer{margin-top:38px;font-size:12.5px;color:var(--faint);line-height:1.8;text-align:center}
+
+  /* 声音弹层 */
+  .mask{position:fixed;inset:0;background:rgba(47,59,51,.45);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:20px}
+  .mask.show{display:flex}
+  .mask-card{background:var(--card);border-radius:20px;padding:24px;max-width:420px;width:100%;
+    box-shadow:0 18px 50px rgba(47,59,51,.28)}
+  .mask-card h3{margin:0 0 10px;font-family:var(--font-song);font-size:21px;letter-spacing:1px}
+  .mask-card p{margin:0 0 14px;font-size:14px;color:var(--ink-soft);line-height:1.7}
+  .mask-row{display:flex;gap:10px;flex-wrap:wrap}
+  /* 小乐队：换乐器伴奏 + 跟着跳的小动物 */
+  .band-row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin:12px 0 4px}
+  .band-btn{width:52px;height:52px;border:2px solid #DFD2B4;border-radius:16px;background:#FFFDF6;
+    display:grid;place-items:center;cursor:pointer;transition:transform .15s;-webkit-tap-highlight-color:transparent}
+  .band-btn svg{width:29px;height:29px;fill:none;stroke:#8A7A55;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .band-btn.on{background:#FFF2D8;border-color:#D9A13B;box-shadow:0 3px 0 rgba(201,153,42,.28);transform:translateY(-3px)}
+  .band-btn.on svg{stroke:#A8782A}
+  .band-btn:active{transform:scale(.93)}
+  .band-label{text-align:center;font-size:11.5px;color:#8A7A55;margin:0 0 4px}
+  .dance-row{display:flex;justify-content:center;gap:18px;margin:8px 0 4px;min-height:54px}
+  .dance-pet{width:48px;height:50px;background:none;border:none;padding:0;cursor:pointer;opacity:.5;
+    transition:opacity .2s;-webkit-tap-highlight-color:transparent}
+  .dance-pet svg{width:100%;height:100%}
+  .dance-row.playing .dance-pet{opacity:1}
+  .dance-row.playing .dance-pet:nth-child(1){animation:danceA .6s ease-in-out infinite}
+  .dance-row.playing .dance-pet:nth-child(2){animation:danceA .6s .15s ease-in-out infinite}
+  .dance-row.playing .dance-pet:nth-child(3){animation:danceA .6s .3s ease-in-out infinite}
+  .dance-pet.tap{animation:danceTap .45s ease}
+  @keyframes danceA{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(4deg)}}
+  @keyframes danceTap{0%{transform:scale(1)}40%{transform:scale(1.2) translateY(-14px)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="seal">歌</div>
+      <div>
+        <h1>可心学儿歌</h1>
+        <p>会念的绘本 · 一共 50 首</p>
+      </div>
+    </div>
+    <div class="star-box" id="starBox" title="听完整首就能点亮一颗小星星">
+      <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
+      <span>听过</span><b id="starCount">0</b><span>首</span>
+    </div>
+  </header>
+
+  <div class="notice" id="notice"></div>
+
+  <section class="intro">
+    <h2>拍拍手，一起念</h2>
+    <p>点一句话就念这一句，点「从头念」整首都听。听完一首，上面会亮一颗小星星。</p>
+    <span class="scribble">～啦啦啦～</span>
+  </section>
+
+  <!-- 列表 -->
+  <div class="view active" id="listView">
+    <div class="mode-row" id="modeRow"></div>
+    <div class="grid" id="grid"></div>
+    <footer>给家长：50 首经典童谣，整首和每一句都配了提前录好的声音，微信里也能听。听完一首自动记一颗星，进度存在本机；页面只记录玩了多久，用来给家长做时间管理，不记内容、不需要登录。</footer>
+  </div>
+
+  <!-- 详情 -->
+  <div class="view" id="detailView">
+    <div class="detail-top">
+      <button class="back-btn" id="backBtn">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>回到儿歌架
+      </button>
+    </div>
+    <div class="poem">
+      <h2 class="poem-title" id="dTitle"></h2>
+      <span class="poem-cat" id="dCat"></span>
+      <div class="lines" id="dLines"></div>
+      <div class="ctrl-row">
+        <button class="ctrl primary" id="playAll"></button>
+        <button class="ctrl sing" id="singBtn" style="display:none"></button>
+        <button class="ctrl plain" id="stopBtn"></button>
+        <button class="ctrl plain" id="reciteBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3.5 3.5 0 003.5-3.5V5a3.5 3.5 0 00-7 0v5.5A3.5 3.5 0 0012 14zm5-3.5a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-3.58a7 7 0 006-6.92z"/></svg>我来唱</button>
+        <button class="ctrl plain" id="voiceTestBtn">试试声音</button>
+      </div>
+      <div class="band-row" id="bandRow">
+        <button class="band-btn on" data-inst="0" aria-label="八音盒"><svg viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="M7 10V6h10v4M12 3v3M9 14h6"/></svg></button>
+        <button class="band-btn" data-inst="1" aria-label="小铃铛"><svg viewBox="0 0 24 24"><path d="M6 16c1.5-2 1.5-5 6-5s4.5 3 6 5z"/><path d="M5 16h14M12 8V5M10 19a2 2 0 004 0"/></svg></button>
+        <button class="band-btn" data-inst="2" aria-label="小鼓"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="9" rx="8" ry="3"/><path d="M4 9v7c0 1.7 3.6 3 8 3s8-1.3 8-3V9M6 5l10 4M18 5L8 9"/></svg></button>
+        <button class="band-btn" data-inst="3" aria-label="木鱼"><svg viewBox="0 0 24 24"><path d="M3 13c0-4 4-7 9-7s9 3 9 7-4 6-9 6-9-2-9-6z"/><path d="M7 12h10M17 5l3 4"/></svg></button>
+      </div>
+      <p class="band-label" id="bandLabel">现在用：八音盒 · 点一下换件乐器</p>
+      <div class="dance-row" id="danceRow">
+        <button class="dance-pet" aria-label="小兔子"><svg viewBox="0 0 54 58"><ellipse cx="19" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/><ellipse cx="35" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/><circle cx="27" cy="36" r="19" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/><circle cx="20.5" cy="33" r="2.3" fill="#5A3A44"/><circle cx="33.5" cy="33" r="2.3" fill="#5A3A44"/><circle cx="27" cy="38.5" r="1.6" fill="#D96A8E"/></svg></button>
+        <button class="dance-pet" aria-label="小黄鸭"><svg viewBox="0 0 54 58"><circle cx="24" cy="24" r="13" fill="#F7D354" stroke="#B8912E" stroke-width="2"/><path d="M12 24L2 27l10 4z" fill="#E8933A" stroke="#B8862E" stroke-width="1.8"/><circle cx="21" cy="21" r="2.4" fill="#4A4238"/><ellipse cx="32" cy="43" rx="18" ry="12" fill="#F7D354" stroke="#B8912E" stroke-width="2"/></svg></button>
+        <button class="dance-pet" aria-label="小熊"><svg viewBox="0 0 54 58"><circle cx="16" cy="18" r="9" fill="#C89858" stroke="#8A5A2B" stroke-width="2"/><circle cx="38" cy="18" r="9" fill="#C89858" stroke="#8A5A2B" stroke-width="2"/><circle cx="27" cy="36" r="19" fill="#C89858" stroke="#8A5A2B" stroke-width="2"/><ellipse cx="27" cy="41" rx="10" ry="8" fill="#E8C89A"/><circle cx="21" cy="32" r="2.4" fill="#4A4238"/><circle cx="33" cy="32" r="2.4" fill="#4A4238"/><ellipse cx="27" cy="38" rx="3" ry="2.3" fill="#4A4238"/></svg></button>
+      </div>
+      <p class="cat-tip" id="dTip"></p>
+    </div>
+  </div>
+</div>
+
+<!-- 声音测试弹层 -->
+<div class="mask" id="voiceMask">
+  <div class="mask-card">
+    <h3>声音测试</h3>
+    <p>点下面的按钮，能听到「你好呀」就说明声音正常。听不到的话，看看手机旁边的静音键，再把媒体音量调大。</p>
+    <div class="mask-row">
+      <button class="ctrl primary" id="voiceTestPlay">放一段试试</button>
+      <button class="ctrl plain" id="voiceClose">知道了</button>
+    </div>
+    <p id="voiceStatus" style="margin-top:12px;font-size:13px;color:var(--faint)"></p>
+  </div>
+</div>
+
+<script src="../cloud.js"></script>
+<script src="../usage.js"></script>
+<script src="../fun.js"></script>
+<script src="data.js"></script>
+<script>
+const ALL = window.NURSERY_DATA;
+const META = window.NURSERY_META;
+const CATS = META.cats;
+
+const CAT_TIPS = {
+  '动物乐园': '念到小动物的时候，可以学它叫一声：喵喵、嘎嘎、呱呱，可心最爱学哪一个？',
+  '好习惯': '这些儿歌里藏着小本领。念完想一想：今天洗手搓了几下？牙齿刷得白不白？',
+  '做游戏': '这些儿歌可以一边玩一边念：拍拍手、丢手绢、拉圆圈，叫上爸爸妈妈一起。',
+  '大自然': '念到春天、雪人、彩虹的时候，往窗外看一看，今天外面是什么天气呀？',
+  '数一数': '一边念一边扳手指头数一数，念完了再数一遍，看谁数得又快又准。',
+  '老童谣': '这些是爷爷奶奶小时候就会念的童谣，学会一首，回去念给他们听一听。'
+};
+const CAT_COLOR = {
+  '动物乐园':'var(--green)','好习惯':'var(--blue)','做游戏':'var(--pink)',
+  '大自然':'var(--yellow)','数一数':'var(--orange)','老童谣':'#B9A3D6'
+};
+
+const SPEAK_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const STOP_SVG  = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>';
+const MUSIC_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3v10.6a3.5 3.5 0 1 0 2 3.1V7h6V3z"/></svg>';
+const LINE_TAG  = '<svg class="line-tag" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const STAR_SVG  = '<svg class="card-done" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
+
+/* ---------------- 星星（只存本机） ---------------- */
+const KEY = 'kexin_nursery_stars_v1';
+function getStars(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return {}; } }
+function hasStar(id){ return !!getStars()[id]; }
+function addStar(id){
+  const s = getStars(); if(s[id]) return false;
+  s[id] = 1; try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){}
+  return true;
+}
+function refreshStars(){ document.getElementById('starCount').textContent = Object.keys(getStars()).length; }
+
+/* ---------------- 预录音频播放 ---------------- */
+const player = new Audio();
+player.preload = 'auto';
+function playAudio(src, onended, onerror){
+  try{
+    player.pause();
+    player.onended = null; player.onerror = null;
+    player.src = src; player.load();
+    player.onended = onended || null;
+    player.onerror = onerror || null;
+    const p = player.play(); if(p && p.catch) p.catch(()=>{});
+  }catch(e){}
+}
+function stopAudio(){ try{ player.pause(); }catch(e){} }
+
+let currentId = null;
+function byId(id){ return ALL.find(s=>s.id===id); }
+function voiceNotice(msg){ const n=document.getElementById('notice'); n.textContent=msg; n.classList.add('show'); }
+
+const UA = navigator.userAgent||'';
+if(/MicroMessenger/i.test(UA)){
+  const n=document.getElementById('notice');
+  n.classList.add('show');
+  n.innerHTML='<b>微信里也能听声音啦</b>'
+    +'<span>这一页用的是提前录好的声音，不靠浏览器朗读，微信里直接就能听。第一次打开先点一下屏幕，再点卡片就开始念了。</span>'
+    +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
+}
+
+/* ---------------- 列表 ---------------- */
+const state = { cat:'全部' };
+function renderModes(){
+  const row = document.getElementById('modeRow');
+  const cats = ['全部'].concat(CATS);
+  row.innerHTML = cats.map(c=>{
+    const n = c==='全部' ? ALL.length : ALL.filter(s=>s.cat===c).length;
+    return '<button class="mode'+(state.cat===c?' active':'')+'" data-cat="'+c+'">'+c+' '+n+'</button>';
+  }).join('');
+  row.querySelectorAll('.mode').forEach(b=>{
+    b.onclick = ()=>{ state.cat = b.dataset.cat; renderModes(); renderGrid(); stopAudio(); };
+  });
+}
+function renderGrid(){
+  const g = document.getElementById('grid');
+  const list = state.cat==='全部' ? ALL : ALL.filter(s=>s.cat===state.cat);
+  g.innerHTML = list.map(s=>
+    '<button class="song-card" data-id="'+s.id+'">'
+    + (hasStar(s.id)?STAR_SVG:'')
+    + '<div class="card-num">'+s.id.replace('n','')+' 号</div>'
+    + '<div class="card-title">'+s.title+'</div>'
+    + '<div class="card-first">'+s.lines[0]+'</div>'
+    + '<div class="card-tags"><span class="tag c'+s.cat+'">'+s.cat+' · '+s.lines.length+' 句</span></div>'
+    + '</button>'
+  ).join('');
+  g.querySelectorAll('.song-card').forEach(c=>{
+    c.onclick = ()=>openDetail(c.dataset.id);
+  });
+}
+
+/* ---------------- 详情 ---------------- */
+const dLines = document.getElementById('dLines');
+function openDetail(id){
+  currentId = id;
+  const s = byId(id); if(!s) return;
+  stopSing(); stopAudio();
+  document.getElementById('dTitle').textContent = s.title;
+  document.getElementById('dCat').innerHTML =
+    '<span class="tag c'+s.cat+'">'+s.cat+' · 共 '+s.lines.length+' 句</span>';
+  dLines.innerHTML = s.lines.map((l,i)=>
+    '<button class="line" data-i="'+i+'">'
+    +'<span class="line-num">'+(i+1)+'</span>'
+    +'<span class="line-txt">'+l+'</span>'
+    +LINE_TAG+'</button>'
+  ).join('');
+  dLines.querySelectorAll('.line').forEach(el=>{
+    el.onclick = ()=>speakLine(+el.dataset.i);
+  });
+  document.getElementById('dTip').innerHTML = s.melody
+    ? '<b>跟着唱小提示</b>：叮叮咚咚弹的是这首歌的调子，歌词跟着变亮，唱完一遍再来一遍！'
+    : '<b>念儿歌小提示</b>：'+CAT_TIPS[s.cat];
+  setPlaying(false); setDance(false);
+  const sb = document.getElementById('singBtn');
+  if(s.melody){ sb.style.display=''; setSingBtn(false); }
+  else { sb.style.display='none'; }
+  document.getElementById('listView').classList.remove('active');
+  document.getElementById('detailView').classList.add('active');
+  window.scrollTo(0,0);
+}
+document.getElementById('backBtn').onclick = ()=>{
+  stopAll();
+  document.getElementById('detailView').classList.remove('active');
+  document.getElementById('listView').classList.add('active');
+  renderGrid();
+};
+
+/* 点单句：只念这一句并高亮 */
+function clearHighlight(){ dLines.querySelectorAll('.line.speaking').forEach(el=>el.classList.remove('speaking')); }
+function speakLine(i){
+  const s = byId(currentId); if(!s) return;
+  stopSing();
+  clearHighlight();
+  const el = dLines.querySelector('.line[data-i="'+i+'"]');
+  if(el) el.classList.add('speaking');
+  playAudio('audio/'+s.id+'_l'+('0'+(i+1)).slice(-2)+'.mp3', clearHighlight);
+}
+/* 整首：整段录音连念，全部行高亮；听完自动点亮星星 */
+function setPlaying(on){
+  const b = document.getElementById('playAll'); if(!b) return;
+  b.innerHTML = SPEAK_SVG + (on ? ' 正在念…点一下停止' : ' 从头念整首');
+}
+function speakWhole(){
+  const s = byId(currentId); if(!s) return;
+  stopSing();
+  clearHighlight();
+  dLines.querySelectorAll('.line').forEach(el=>el.classList.add('speaking'));
+  setPlaying(true); setDance(true);
+  playAudio('audio/'+s.id+'.mp3', ()=>{
+    clearHighlight(); setPlaying(false); setDance(false);
+    if(addStar(s.id)){
+      refreshStars();
+      const box = document.getElementById('starBox');
+      box.classList.remove('pop');
+      /* 触发重排以重启动画（老内核不用 Web Animations API） */
+      void box.offsetWidth;
+      box.classList.add('pop');
+    }
+    if(window.partyBurst){ partyBurst(24); if(Math.random()<.6) praiseOnce(); }
+    if(window.KX_FUN) KX_FUN.hit(true);
+  }, ()=>{ clearHighlight(); setPlaying(false); setDance(false); });
+}
+function stopAll(){ stopSing(); stopAudio(); clearHighlight(); setPlaying(false); setDance(false); }
+document.getElementById('playAll').onclick = ()=>{
+  const s = byId(currentId); if(!s) return;
+  if(!player.paused){ stopAll(); return; }
+  speakWhole();
+};
+document.getElementById('stopBtn').onclick = stopAll;
+
+/* 我来唱：录孩子唱儿歌（App 里可用） */
+document.getElementById('reciteBtn').onclick = function(){
+  if(!window.KX_RECITE) return;
+  KX_RECITE.open({ id:'nursery_'+currentId, verb:'唱', thing:'儿歌', onOpen:stopAll });
+};
+
+/* ---------------- 小乐队：四种伴奏音色 + 会跳舞的小动物 ---------------- */
+const INSTS=[
+  {n:'八音盒',w:[[1,'sine',.30],[2,'sine',.07]],decay:.92,min:.30},
+  {n:'小铃铛',w:[[1,'sine',.22],[2.76,'sine',.10],[5.4,'sine',.04]],decay:.99,min:.34},
+  {n:'小鼓',  w:[[.5,'triangle',.30]],decay:.20,min:.12},
+  {n:'木鱼',  w:[[1,'square',.09],[2,'triangle',.03]],decay:.14,min:.10}
+];
+let instIdx=0, taps=0;
+function setBand(){
+  const bs=document.querySelectorAll('#bandRow .band-btn');
+  Array.prototype.forEach.call(bs,function(b,i){ b.classList.toggle('on',i===instIdx); });
+  const lab=document.getElementById('bandLabel'); if(lab) lab.textContent='现在用：'+INSTS[instIdx].n+' · 点一下换件乐器';
+}
+function setDance(on){ const r=document.getElementById('danceRow'); if(r) r.classList.toggle('playing',!!on); }
+function tapPet(btn,i){
+  const ac=getAC();
+  if(ac){
+    const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;
+    o.type='sine'; o.frequency.value=[660,784,880][i%3];
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(.11,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.22);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+.24);
+  }
+  btn.classList.remove('tap'); void btn.offsetWidth; btn.classList.add('tap');
+  taps++;
+  if(taps>=4){ taps=0; if(window.KX_FUN){ KX_FUN.burst(18); KX_FUN.praise(); } }
+}
+(function(){
+  Array.prototype.forEach.call(document.querySelectorAll('#bandRow .band-btn'),function(b,i){
+    b.onclick=function(){
+      instIdx=i; setBand();
+      if(window.KX_FUN) KX_FUN.ding(true);
+      /* 正在跟唱时用新音色重来一遍 */
+      if(sing){ stopSing(); startSing(); }
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#danceRow .dance-pet'),function(b,i){ b.onclick=function(){ tapPet(b,i); }; });
+  setBand();
+})();
+
+/* ---------------- 八音盒跟唱 ---------------- */
+let AC = null;
+function getAC(){
+  try{
+    if(!AC){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      AC = new Ctx();
+    }
+    if(AC.state === 'suspended' && AC.resume) AC.resume();
+    return AC;
+  }catch(e){ return null; }
+}
+function noteFreq(name){
+  const SEMI = {C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
+  const m = /^([A-G]#?)(\d)$/.exec(name); if(!m) return 0;
+  return 440 * Math.pow(2, (SEMI[m[1]] + (parseInt(m[2],10)+1)*12 - 69)/12);
+}
+let sing = null; /* { nodes, raf, t0, spans, end } */
+function setSingBtn(playing){
+  const b = document.getElementById('singBtn'); if(!b) return;
+  b.innerHTML = MUSIC_SVG + (playing ? ' 停止跟唱' : ' 跟着唱');
+}
+function stopSing(){
+  if(!sing) return;
+  sing.nodes.forEach(n=>{ try{ n.stop(); }catch(e){} });
+  if(sing.raf) cancelAnimationFrame(sing.raf);
+  dLines.querySelectorAll('.line.singing').forEach(el=>el.classList.remove('singing'));
+  sing = null;
+  setSingBtn(false); setDance(false);
+}
+function startSing(){
+  const s = byId(currentId); if(!s || !s.melody) return;
+  stopAll();
+  const ac = getAC();
+  if(!ac){ voiceNotice('这台设备放不了旋律，先点句子听朗读吧。'); return; }
+  const beat = 60 / (s.bpm || 96);
+  const t0 = ac.currentTime + 0.25;
+  let t = t0, end = t0;
+  const spans = [], nodes = [];
+  s.melody.forEach((line, i)=>{
+    const from = t;
+    line.split(/\s+/).forEach(tok=>{
+      const mm = /^([A-G]#?\d)(?::([0-9.]+))?$/.exec(tok); if(!mm) return;
+      const dur = (mm[2] ? parseFloat(mm[2]) : 1) * beat;
+      const f = noteFreq(mm[1]);
+      /* 小乐队音色：按当前选的乐器生成音符（八音盒/铃铛/小鼓/木鱼） */
+      const inst = INSTS[instIdx];
+      const tail = Math.max(dur*inst.decay, inst.min);
+      inst.w.forEach(pair=>{
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = pair[1]; o.frequency.value = f * pair[0];
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(pair[2], t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + tail);
+        o.connect(g); g.connect(ac.destination);
+        o.start(t); o.stop(t + tail + 0.06);
+        nodes.push(o);
+      });
+      t += dur;
+    });
+    end = Math.max(end, t);
+    spans.push({i:i, from:from, to:t});
+    t += beat * 0.35; /* 句间小呼吸 */
+  });
+  sing = { nodes: nodes, raf: 0, t0: t0, spans: spans, end: end };
+  setSingBtn(true); setDance(true);
+  (function tick(){
+    if(!sing) return;
+    const now = ac.currentTime - sing.t0;
+    let cur = -1;
+    sing.spans.forEach(sp=>{ if(now >= sp.from && now < sp.to) cur = sp.i; });
+    dLines.querySelectorAll('.line.singing').forEach(el=>el.classList.remove('singing'));
+    if(cur >= 0){
+      const el = dLines.querySelector('.line[data-i="'+cur+'"]');
+      if(el) el.classList.add('singing');
+    }
+    if(now < sing.end){ sing.raf = requestAnimationFrame(tick); }
+    else { stopSing(); }
+  })();
+}
+document.getElementById('singBtn').onclick = function(){
+  if(sing){ stopSing(); } else { startSing(); }
+};
+
+/* ---------------- 声音测试 ---------------- */
+const voiceMask = document.getElementById('voiceMask');
+document.getElementById('voiceTestBtn').onclick = ()=>{ stopAll(); voiceMask.classList.add('show'); };
+document.getElementById('voiceClose').onclick = ()=>{ voiceMask.classList.remove('show'); stopAudio(); };
+voiceMask.onclick = e=>{ if(e.target===voiceMask){ voiceMask.classList.remove('show'); stopAudio(); } };
+document.getElementById('voiceTestPlay').onclick = ()=>{
+  playAudio('audio/test.mp3');
+  document.getElementById('voiceStatus').textContent = '正在播放…听到「你好呀」就说明声音正常。';
+};
+
+/* ---------------- 启动 ---------------- */
+renderModes();
+renderGrid();
+refreshStars();
+</script>
+<style>
+  /* 蹦蹦兔小助手 + 彩纸 */
+  #bunny{position:fixed;right:12px;bottom:14px;width:56px;z-index:60;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;user-select:none;animation:bunnyBob 2.8s ease-in-out infinite}
+  @keyframes bunnyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  #bunny.jump{animation:bunnyJump .5s ease}
+  @keyframes bunnyJump{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-16px) scale(1.1)}70%{transform:translateY(0) scale(.93)}100%{transform:translateY(0) scale(1)}}
+  #bunnySay{position:absolute;bottom:64px;right:0;min-width:120px;background:#FFFDF4;border:2px solid #E8A9C0;
+    border-radius:12px;padding:6px 10px;font-size:13px;color:#7A4A55;opacity:0;transform:translateY(6px);
+    transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 4px 0 rgba(200,90,74,.12);
+    text-align:center;white-space:nowrap}
+  #bunnySay.show{opacity:1;transform:translateY(0)}
+  .party-bit{position:fixed;top:-20px;z-index:70;pointer-events:none;width:9px;height:13px;border-radius:2px}
+  @keyframes partyFall{to{transform:translate(var(--drift),112vh) rotate(var(--spin));opacity:.8}}
+  body{padding-bottom:88px}
+</style>
+<div id="bunny" role="button" aria-label="蹦蹦兔">
+  <svg viewBox="0 0 54 58" width="56" height="60" aria-hidden="true">
+    <ellipse cx="19" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="35" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="19" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <ellipse cx="35" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <circle cx="27" cy="36" r="19" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <circle cx="16.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="37.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="20.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="33.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="27" cy="38.5" r="1.6" fill="#D96A8E"/>
+    <path d="M24.6 41.5 q2.4 2.6 4.8 0" stroke="#5A3A44" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div id="bunnySay"></div>
+</div>
+<script>
+(function(){
+  var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
+  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
+  var audio=null,timer=0;
+  var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
+  if(!box||!say) return;
+  /* 全屏彩纸（完成大事时用） */
+  window.partyBurst=function(n){
+    var colors=['#E8A9C0','#F0C24E','#A8CBA0','#9FC5D9','#D9A8E0','#F0A98C'];
+    n=n||32;
+    for(var i=0;i<n;i++){
+      var c=document.createElement('i');
+      c.className='party-bit';
+      c.style.left=(Math.random()*94+3)+'vw';
+      c.style.background=colors[i%colors.length];
+      c.style.animation='partyFall '+(2.2+Math.random()*1.6).toFixed(2)+'s '+(Math.random()*.5).toFixed(2)+'s linear forwards';
+      c.style.setProperty('--drift',((Math.random()*180-90)|0)+'px');
+      c.style.setProperty('--spin',((Math.random()*720-360)|0)+'deg');
+      document.body.appendChild(c);
+      (function(el){ setTimeout(function(){ el.remove(); },4800); })(c);
+    }
+  };
+  /* 随机表扬语音 */
+  window.praiseOnce=function(){
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  };
+  box.addEventListener('click',function(){
+    box.classList.remove('jump'); void box.offsetWidth; box.classList.add('jump');
+    say.textContent=SAYS[Math.floor(Math.random()*SAYS.length)];
+    say.classList.add('show');
+    clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
+      audio=new Audio(src);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  });
+})();
+</script>
+
+  <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>
+<script src="/recite.js?v=22"></script>
+<script src="/tapread.js"></script>
+</body>
+</html>

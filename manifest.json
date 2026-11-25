@@ -1,0 +1,17 @@
+{
+  "name": "可心的小乐园",
+  "short_name": "小乐园",
+  "lang": "zh-CN",
+  "description": "可心的古诗、英语、儿歌、数学、知识、故事和赛车小乐园",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6EA",
+  "theme_color": "#FBF6EA",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

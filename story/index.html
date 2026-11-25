@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBF6EA">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="description" content="给小朋友的听故事绘本：8 个经典童话，点一下就讲，逐句朗读，听完点亮小星星。">
+<title>可心听故事</title>
+<style>
+  :root{
+    --paper:#FBF6EA; --card:#FFFDF6; --ink:#2F3B33; --ink-soft:#6B7568;
+    --faint:#98A095; --wood:#E7D9BC; --seal:#C85A4A; --yellow:#F2C14E;
+    --song:"STKaiti","KaiTi","Kaiti SC","楷体","Songti SC","SimSun",serif;
+    --ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--ui);min-height:100vh;
+    background-image:radial-gradient(rgba(120,110,85,.06) .8px,transparent .8px);background-size:11px 11px}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 90px}
+
+  .topbar{display:flex;align-items:center;gap:12px;padding:22px 0 12px}
+  .home{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--wood);
+    background:var(--card);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ink-soft);text-decoration:none}
+  .home svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .title{font-family:var(--song);font-size:25px;margin:0;letter-spacing:2px}
+  .star-box{margin-left:auto;display:flex;align-items:center;gap:6px;background:var(--card);
+    border:1.5px solid var(--wood);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--ink-soft);
+    transform:rotate(2deg);white-space:nowrap}
+  .star-box svg{width:18px;height:18px;fill:var(--yellow);stroke:#C99A32;stroke-width:1}
+  .star-box b{font-size:16px;color:var(--ink);font-family:var(--song)}
+
+  .hint{margin:6px 0 18px;font-size:13.5px;color:var(--ink-soft)}
+  .view{display:none}
+  .view.active{display:block}
+
+  /* 列表卡片 */
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px}
+  @media(max-width:680px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:440px){.grid{grid-template-columns:1fr}}
+  .sc{position:relative;text-align:left;background:var(--card);border:1.5px solid var(--wood);
+    border-radius:20px;padding:18px 16px 16px;min-height:150px;overflow:hidden;
+    box-shadow:3px 4px 0 rgba(231,217,188,.5);transition:transform .16s,box-shadow .16s,border-color .16s;
+    animation:rise .4s both}
+  .sc:nth-child(2n){transform:rotate(.8deg)}
+  .sc:nth-child(2n+1){transform:rotate(-.8deg)}
+  .sc:hover{transform:translateY(-4px) rotate(0);box-shadow:5px 8px 0 rgba(231,217,188,.7);border-color:var(--c)}
+  @keyframes rise{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+  .sc-ico{width:62px;height:54px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 16%,#fff);
+    border-radius:14px;margin-bottom:10px}
+  .sc-ico svg{width:42px;height:38px}
+  .sc-title{font-family:var(--song);font-size:25px;margin:2px 0 4px;letter-spacing:1px;line-height:1.25}
+  .sc-intro{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+  .sc-done{position:absolute;top:13px;right:13px;width:24px;height:24px;fill:var(--yellow);stroke:#C99A32;stroke-width:1.2}
+
+  /* 详情 */
+  .dt-top{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+  .back{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--wood);background:var(--card);
+    border-radius:999px;padding:8px 14px;font-size:13.5px;color:var(--ink-soft)}
+  .back svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .dt-title{font-family:var(--song);font-size:clamp(26px,6vw,38px);margin:0 0 2px;letter-spacing:2px}
+  .dt-prog{font-size:13px;color:var(--ink-soft);margin:0 0 14px}
+  .dt-prog b{color:var(--ink);font-family:var(--song);font-size:16px}
+
+  .book{background:var(--card);border:1.5px solid var(--wood);border-radius:22px;padding:22px 20px;
+    box-shadow:3px 4px 0 rgba(231,217,188,.5)}
+  .lines{display:flex;flex-direction:column;gap:8px}
+  .ln{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border-radius:14px;
+    padding:11px 13px;transition:background .15s,box-shadow .15s}
+  .ln:hover{background:#FCF3DC}
+  .ln.speaking{background:#FCF3DC;box-shadow:inset 0 0 0 2px var(--yellow)}
+  .ln-num{font-size:11px;color:var(--faint);min-width:20px;flex:none;font-family:var(--ui)}
+  .ln-txt{font-family:var(--song);font-size:clamp(20px,4.4vw,27px);letter-spacing:2px;line-height:1.55;color:var(--ink)}
+  .ln.speaking .ln-txt{color:#9A6B12}
+
+  .finish{display:none;margin:16px 0 0;padding:14px 16px;border-radius:16px;background:#FCF3DC;
+    border:1.5px dashed #E0B84F;text-align:center;font-size:14px;color:#8A6A20;line-height:1.7}
+  .finish.show{display:block;animation:pop .4s}
+  .finish b{font-family:var(--song);font-size:17px;color:#C99A32}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+  /* 控制条 */
+  .ctrl{position:sticky;bottom:0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+    margin-top:18px;padding:13px 8px calc(13px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,rgba(251,246,234,.96),rgba(251,246,234,.6) 70%,transparent)}
+  .cb{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--wood);background:var(--card);
+    border-radius:999px;padding:11px 16px;font-size:14px;color:var(--ink);transition:transform .12s,border-color .12s}
+  .cb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .cb:active{transform:scale(.95)}
+  .cb.on{border-color:var(--seal);color:var(--seal);background:#FCEDEC}
+  .cb.pri{border-color:var(--seal);color:var(--seal);background:#FCEDEC}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="home" href="../"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>回小乐园</a>
+    <h1 class="title">可心听故事</h1>
+    <div class="star-box"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.8 5.9 20.4l1.5-6.8L2.2 8.9l6.9-.7z"/></svg><b id="starN">0</b> 颗星</div>
+  </div>
+
+  <p class="hint" id="hint">点一个故事，听它慢慢讲给你听～</p>
+
+  <!-- 列表 -->
+  <section class="view active" id="listView">
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- 详情 -->
+  <section class="view" id="storyView">
+    <div class="dt-top">
+      <button class="back" id="backBtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>故事列表</button>
+    </div>
+    <h2 class="dt-title" id="dtTitle"></h2>
+    <p class="dt-prog">第 <b id="curN">1</b> / <span id="totN">1</span> 段</p>
+    <div class="book">
+      <div class="lines" id="lines"></div>
+      <div class="finish" id="finish">
+        <b>听完啦，你真棒！</b><br>这颗小星星收好，再去听一个吧～
+      </div>
+    </div>
+    <div class="ctrl">
+      <button class="cb" id="prevBtn"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>上一段</button>
+      <button class="cb pri" id="replayBtn"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3M4 4v4h4"/></svg>再听一遍</button>
+      <button class="cb" id="nextBtn"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>下一段</button>
+      <button class="cb" id="autoBtn"><svg viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM16 5v14"/></svg>自动连播</button>
+      <button class="cb" id="reciteBtn"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 14a3.5 3.5 0 003.5-3.5V5a3.5 3.5 0 00-7 0v5.5A3.5 3.5 0 0012 14zm5-3.5a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-3.58a7 7 0 006-6.92z"/></svg>我来讲</button>
+    </div>
+  </section>
+</div>
+
+<script src="stories.js"></script>
+<script src="../usage.js"></script>
+<script src="../fun.js"></script>
+<script>
+(function(){
+  'use strict';
+  var STARS_KEY='kexin_story_stars_v1';
+  var BOOK='<svg viewBox="0 0 84 72" aria-hidden="true">'
+    +'<path d="M42 16C33 8 18 8 9 12v44c9-4 24-4 33 4z" fill="{C}" stroke="#2F3B33" stroke-width="2.4" stroke-linejoin="round"/>'
+    +'<path d="M42 16C51 8 66 8 75 12v44c-9-4-24-4-33 4z" fill="#FFFDF6" stroke="#2F3B33" stroke-width="2.4" stroke-linejoin="round"/>'
+    +'<path d="M42 16v44" stroke="#2F3B33" stroke-width="2.4"/>'
+    +'<path d="M16 24h18M16 32h18M16 40h14M50 24h18M50 32h18M50 40h13" stroke="{C}" stroke-width="2" stroke-linecap="round"/>'
+    +'</svg>';
+  var STAR='<svg class="sc-done" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.8 5.9 20.4l1.5-6.8L2.2 8.9l6.9-.7z"/></svg>';
+
+  function jget(k,d){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?d:v; }catch(e){ return d; } }
+  function jset(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function doneMap(){ return jget(STARS_KEY,{}); }
+  function refreshStars(){ document.getElementById('starN').textContent = Object.keys(doneMap()).length; }
+
+  var list=window.STORY_DATA||[];
+  var grid=document.getElementById('grid');
+  list.forEach(function(s){
+    var el=document.createElement('button');
+    el.className='sc'; el.style.setProperty('--c', s.color||'#C76B9E');
+    var dm=doneMap();
+    el.innerHTML='<div class="sc-ico">'+BOOK.replace(/\{C\}/g, s.color||'#C76B9E')+'</div>'
+      +'<div class="sc-title">'+s.title+'</div>'
+      +'<div class="sc-intro">'+s.intro+'</div>'
+      +(dm[s.id]?STAR:'');
+    el.onclick=function(){ openStory(s); };
+    grid.appendChild(el);
+  });
+
+  var cur=null, curIdx=0, audio=null, autoMode=false;
+  var storyView=document.getElementById('storyView'), listView=document.getElementById('listView');
+  var linesBox=document.getElementById('lines'), dtTitle=document.getElementById('dtTitle');
+  var finish=document.getElementById('finish'), autoBtn=document.getElementById('autoBtn');
+
+  function openStory(s){
+    cur=s; curIdx=0; autoMode=false; autoBtn.classList.remove('on');
+    dtTitle.textContent=s.title;
+    document.getElementById('totN').textContent=s.lines.length;
+    linesBox.innerHTML='';
+    s.lines.forEach(function(txt,i){
+      var row=document.createElement('div');
+      row.className='ln'; row.dataset.i=i;
+      row.innerHTML='<span class="ln-num">'+(i+1)+'</span><span class="ln-txt">'+txt+'</span>';
+      row.onclick=function(){ autoMode=false; autoBtn.classList.remove('on'); playLine(i,false); };
+      linesBox.appendChild(row);
+    });
+    finish.classList.remove('show');
+    if(doneMap()[s.id]) finish.classList.add('show');
+    listView.classList.remove('active'); storyView.classList.add('active');
+    window.scrollTo(0,0);
+    playLine(0,false);
+  }
+
+  function playLine(i, auto){
+    if(!cur || i<0 || i>=cur.lines.length) return;
+    curIdx=i;
+    document.getElementById('curN').textContent=(i+1);
+    Array.prototype.forEach.call(linesBox.children,function(r){
+      r.classList.toggle('speaking', Number(r.dataset.i)===i);
+    });
+    var rows=linesBox.children; if(rows[i]) rows[i].scrollIntoView({block:'nearest',behavior:'smooth'});
+    if(!audio) audio=new Audio();
+    if(!audio.paused){ try{ audio.pause(); }catch(e){} }
+    var fn='audio/story_'+cur.id+'_L'+('0'+(i+1)).slice(-2)+'.mp3';
+    audio.src=fn;
+    var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    audio.onended=function(){
+      if(auto && autoMode && i<cur.lines.length-1){ playLine(i+1,true); }
+      else if(auto && autoMode && i===cur.lines.length-1){ finishStory(); }
+    };
+    if(auto!==false) audio.autoplay=true;
+  }
+
+  function finishStory(){
+    autoMode=false; autoBtn.classList.remove('on');
+    var dm=doneMap();
+    var first=!dm[cur.id];
+    dm[cur.id]=1; jset(STARS_KEY,dm); refreshStars();
+    finish.classList.add('show');
+    try{
+      if(window.KX_FUN){
+        KX_FUN.burst(30);
+        KX_FUN.ding(true);
+      }
+    }catch(e){}
+    if(first) rebuildList();
+  }
+
+  function rebuildList(){
+    var dm=doneMap();
+    Array.prototype.forEach.call(grid.children,function(el,i){
+      var s=list[i]; if(!s) return;
+      var had=el.querySelector('.sc-done');
+      if(dm[s.id] && !had){
+        el.insertAdjacentHTML('beforeend', STAR);
+      }
+    });
+  }
+
+  document.getElementById('backBtn').onclick=function(){
+    if(audio){ try{ audio.pause(); }catch(e){} }
+    autoMode=false; autoBtn.classList.remove('on');
+    storyView.classList.remove('active'); listView.classList.add('active');
+    window.scrollTo(0,0);
+  };
+  document.getElementById('prevBtn').onclick=function(){ autoMode=false; autoBtn.classList.remove('on'); playLine(curIdx-1,false); };
+  document.getElementById('replayBtn').onclick=function(){ playLine(curIdx,false); };
+  document.getElementById('nextBtn').onclick=function(){ autoMode=false; autoBtn.classList.remove('on'); playLine(curIdx+1,false); };
+  autoBtn.onclick=function(){
+    autoMode=!autoMode; autoBtn.classList.toggle('on',autoMode);
+    if(autoMode) playLine(curIdx,true);
+  };
+
+  /* 我来讲：录孩子讲故事（App 里可用） */
+  document.getElementById('reciteBtn').onclick=function(){
+    if(!window.KX_RECITE) return;
+    KX_RECITE.open({ id:'story_'+cur.id, verb:'讲', thing:'故事',
+      onOpen:function(){ if(audio){ try{ audio.pause(); }catch(e){} } autoMode=false; autoBtn.classList.remove('on'); } });
+  };
+
+  refreshStars();
+})();
+</script>
+  <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>
+<script src="/recite.js?v=22"></script>
+<script src="/tapread.js"></script>
+</body>
+</html>

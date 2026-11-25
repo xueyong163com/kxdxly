@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8EE">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="description" content="可心学数学：给幼儿园中班小朋友的数学闯关游戏，数一数、加减法、形状、钟表、人民币、分类找规律，听题目点答案，答对得小星星。">
+<title>可心学数学</title>
+<style>
+  :root{
+    --paper:#FCF8EE; --card:#FFFDF7; --ink:#3E4A50; --ink-soft:#6E8085;
+    --faint:#9BB0AE; --teal:#6BA3A8; --teal-deep:#4E8288; --teal-soft:#E6F2F1;
+    --honey:#F2C879; --honey-soft:#FCF2DA; --green:#8FB573; --green-soft:#EDF5E6;
+    --pink:#E9A6A0; --pink-soft:#FCEDEC; --wood:#E3DCC6; --seal:#5E8F94;
+    --font-num:"Trebuchet MS","Verdana","PingFang SC",sans-serif;
+    --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh;background:var(--paper);color:var(--ink);font-family:var(--font-ui);
+    background-image:
+      radial-gradient(circle at 10% 6%,rgba(107,163,168,.16) 0,transparent 33%),
+      radial-gradient(circle at 90% 78%,rgba(242,200,121,.15) 0,transparent 31%),
+      radial-gradient(rgba(110,120,110,.06) .7px,transparent .7px);
+    background-size:auto,auto,9px 9px;
+  }
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  button:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px 72px}
+
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:28px 0 14px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .seal{width:46px;height:46px;border-radius:9px;background:var(--seal);color:#FFF9EC;
+    font-size:25px;line-height:46px;text-align:center;
+    transform:rotate(-7deg);box-shadow:2px 3px 0 rgba(94,143,148,.25);flex:none}
+  .brand h1{font-size:24px;margin:0;letter-spacing:2px;font-weight:600}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--ink-soft);letter-spacing:1px}
+  .top-actions{display:flex;align-items:flex-start;gap:10px}
+  .voice-btn{display:inline-flex;align-items:center;gap:6px;background:var(--card);
+    border:1.5px solid var(--wood);border-radius:999px;padding:9px 14px;
+    font-size:13px;color:var(--ink-soft);transform:translateY(-5px) rotate(-2deg)}
+  .voice-btn:hover{color:var(--ink);border-color:var(--seal)}
+  .voice-btn svg{width:16px;height:16px;fill:currentColor}
+  @media(max-width:460px){.voice-btn span{display:none}.voice-btn{padding:9px}}
+  .star-box{display:flex;align-items:center;gap:7px;background:var(--card);
+    border:1.5px solid var(--wood);border-radius:999px;padding:8px 15px;
+    font-size:13px;color:var(--ink-soft);transform:translateY(-5px) rotate(3deg);white-space:nowrap}
+  .star-box svg{width:19px;height:19px;fill:var(--honey);stroke:#D4A44A;stroke-width:1}
+  .star-box b{font-size:17px;color:var(--ink);font-family:var(--font-num)}
+
+  .notice{display:none;background:var(--honey-soft);border:1.5px solid #EBD295;
+    border-radius:12px;padding:11px 15px;font-size:13px;line-height:1.6;color:#7A6030;margin-bottom:16px}
+  .notice.show{display:block}
+  .notice.wx{display:block;background:var(--honey-soft);border-color:#E3C77F;line-height:1.8}
+  .notice.wx b{display:block;font-size:15px;margin-bottom:4px;color:#7A5E20}
+  .notice.wx span{display:block}
+  .notice.wx em{display:block;margin-top:8px;font-size:12.5px;font-style:normal;color:#7A5E20}
+
+  .intro{position:relative;margin:18px 0 22px;padding-left:16px;border-left:5px solid var(--teal)}
+  .intro h2{font-size:clamp(23px,4.2vw,33px);margin:0;letter-spacing:1px;font-weight:600}
+  .intro p{margin:6px 0 0;font-size:13.5px;color:var(--ink-soft)}
+  .scribble{position:absolute;right:4px;top:2px;font-family:var(--font-num);
+    font-size:15px;color:var(--faint);transform:rotate(-8deg);pointer-events:none}
+  @media(max-width:620px){.scribble{display:none}}
+
+  .view{display:none}
+  .view.active{display:block}
+
+  /* 关卡地图 */
+  .level-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 18px}
+  @media(max-width:760px){.level-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:470px){.level-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 11px}
+    .level-card{padding:12px 11px 11px;border-radius:16px}
+    .level-name{font-size:18px;margin:3px 0 1px}
+    .level-sub{font-size:11px}
+    .level-art{height:62px;margin:3px -2px 0}
+    .level-num{font-size:10px;letter-spacing:0}
+    .level-count{font-size:10.5px;padding:3px 7px}
+    .level-foot{margin-top:5px}
+    .level-card:nth-child(3n+2){margin-top:7px}
+  }
+  .level-card{position:relative;background:var(--card);border:1.5px solid var(--wood);
+    border-radius:20px;padding:18px 18px 17px;text-align:left;overflow:hidden;
+    transition:transform .18s,box-shadow .18s,border-color .18s;
+    box-shadow:3px 4px 0 rgba(227,220,198,.55);animation:rise .45s both}
+  .level-card:hover{transform:translateY(-6px) rotate(0deg)!important;
+    box-shadow:5px 9px 0 rgba(227,220,198,.8);border-color:var(--teal)}
+  .level-card:nth-child(3n+1){transform:rotate(-1.4deg)}
+  .level-card:nth-child(3n+2){transform:rotate(1deg);margin-top:12px}
+  .level-card:nth-child(3n){transform:rotate(-.7deg);margin-top:4px}
+  @keyframes rise{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+  .level-num{font-size:11.5px;color:var(--faint);letter-spacing:1px}
+  .level-name{font-size:24px;margin:5px 0 2px;letter-spacing:1px;font-weight:600}
+  .level-sub{font-size:12.5px;color:var(--ink-soft)}
+  .level-art{height:96px;margin:6px -4px 2px;display:flex;align-items:flex-end;
+    justify-content:center;gap:7px;overflow:visible}
+  .level-art .ic{width:34px;height:34px;flex:none}
+  .level-art .sign{font-family:var(--font-num);font-size:30px;font-weight:bold;
+    color:var(--teal-deep);align-self:center}
+  .level-art .mini-car{width:34px;height:40px;border:2.2px solid var(--teal-deep);
+    border-radius:8px;background:var(--teal-soft);font-family:var(--font-num);
+    font-size:19px;font-weight:bold;line-height:36px;text-align:center;color:var(--teal-deep)}
+  .level-art .mini-car.q{border-style:dashed;color:var(--honey)}
+  .level-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+  .level-count{font-size:12px;color:var(--ink-soft);background:var(--honey-soft);
+    border-radius:999px;padding:4px 10px}
+  .level-done{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#5E8049}
+  .level-done svg{width:15px;height:15px;fill:var(--green)}
+  .parent-note{margin-top:32px;background:var(--teal-soft);border-radius:14px;
+    padding:15px 18px;font-size:13px;line-height:1.85;color:#43655F;
+    border:1.5px dashed #B9D8D5;transform:rotate(-.4deg)}
+  .parent-note b{color:#2E5A55}
+
+  /* 答题页 */
+  .play-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 14px}
+  .back{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-soft);padding:8px 0}
+  .back svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .back:hover{color:var(--seal)}
+  .play-meta{font-size:13px;color:var(--ink-soft)}
+  .play-meta b{font-size:17px;color:var(--ink);font-family:var(--font-num)}
+  .progress{height:11px;border-radius:999px;background:var(--wood);overflow:hidden;margin-bottom:20px}
+  .progress-fill{height:100%;border-radius:999px;background:var(--green);transition:width .35s ease}
+
+  .stage{background:var(--card);border:1.5px solid var(--wood);border-radius:24px;
+    padding:28px 26px 26px;box-shadow:5px 7px 0 rgba(227,220,198,.45);position:relative;overflow:hidden}
+  @media(max-width:620px){.stage{padding:20px 14px 22px}}
+  .stage::before{content:"";position:absolute;right:-60px;top:-60px;width:190px;height:190px;
+    border-radius:50%;background:rgba(107,163,168,.10);pointer-events:none}
+
+  .fig{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;
+    min-height:120px;padding:6px 2px 2px;position:relative}
+  .fig .ic{width:48px;height:48px;flex:none}
+  @media(max-width:470px){.fig .ic{width:42px;height:42px}.fig{gap:7px;min-height:104px}}
+  .crosswrap{position:relative;display:inline-block}
+  .crosswrap::after{content:"";position:absolute;left:-5px;right:-5px;top:50%;height:3.5px;
+    background:#D96A5E;border-radius:3px;transform:rotate(-28deg)}
+  .crosswrap .ic{opacity:.42}
+
+  .cmp-row{display:flex;align-items:stretch;justify-content:center;gap:12px;margin:4px 0 2px}
+  .cmp-side{flex:1;max-width:240px;background:var(--paper);border:2.5px solid var(--wood);
+    border-radius:18px;padding:16px 8px;display:flex;flex-wrap:wrap;justify-content:center;
+    align-items:center;gap:8px;transition:transform .15s,border-color .15s,background .15s}
+  .cmp-side:hover{border-color:var(--teal);transform:translateY(-2px)}
+  .cmp-side .ic{width:40px;height:40px}
+  @media(max-width:470px){.cmp-side .ic{width:34px;height:34px}.cmp-side{gap:6px;padding:12px 6px}}
+  .cmp-vs{align-self:center;flex:none;width:42px;height:42px;border-radius:50%;
+    background:var(--honey);color:#7A5E20;font-size:19px;line-height:42px;text-align:center;
+    font-weight:600;box-shadow:0 3px 0 #D9AE62}
+
+  .expr-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;
+    min-height:120px;padding:6px 2px 2px}
+  .expr-group{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;max-width:210px}
+  .expr-group .ic{width:42px;height:42px}
+  .expr-sign{font-family:var(--font-num);font-size:44px;font-weight:bold;
+    color:var(--teal-deep);flex:none}
+  .expr-q{font-family:var(--font-num);font-size:52px;font-weight:bold;color:var(--honey);
+    text-shadow:2px 2px 0 rgba(217,174,98,.35);flex:none}
+  .expr-num{font-family:var(--font-num);font-size:46px;font-weight:bold;color:var(--ink);flex:none}
+  @media(max-width:470px){.expr-num{font-size:38px}}
+  .ten-box{display:inline-flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:6px;
+    max-width:224px;padding:12px 14px;border:2.5px dashed var(--teal);border-radius:18px;
+    background:var(--teal-soft);position:relative;flex:none}
+  .ten-box .ic{width:32px;height:32px}
+  .ten-box::after{content:"10 个";position:absolute;right:-6px;top:-13px;font-size:11px;line-height:1;
+    background:var(--teal);color:#FFF;border-radius:999px;padding:4px 9px;letter-spacing:1px}
+  .diff-side{cursor:default;flex-direction:column;gap:4px}
+  .diff-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .diff-icons .ic{width:40px;height:40px}
+  .cmp-label{font-size:12.5px;color:var(--ink-soft);letter-spacing:1px}
+  @media(max-width:470px){.diff-icons .ic{width:30px;height:30px}.diff-icons{gap:5px}}
+
+  .train-row{display:flex;justify-content:center;align-items:flex-end;gap:6px;
+    padding:14px 2px 4px;min-height:120px;flex-wrap:nowrap;overflow-x:auto}
+  .train-loco{flex:none;width:74px;height:78px}
+  .car{flex:none;width:52px;height:56px;border:2.5px solid var(--teal-deep);border-radius:10px;
+    background:var(--teal-soft);font-family:var(--font-num);font-size:26px;font-weight:bold;
+    line-height:52px;text-align:center;color:var(--teal-deep);position:relative}
+  .car.q{border-style:dashed;background:var(--honey-soft);color:#C9992A;animation:carPulse 1.6s infinite}
+  .car .wheel{position:absolute;bottom:-9px;left:50%;translate:-50% 0;width:14px;height:14px;
+    border-radius:50%;background:var(--ink);border:2px solid var(--card)}
+  @keyframes carPulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @media(max-width:520px){.car{width:46px;height:50px;font-size:23px;line-height:46px}
+    .train-loco{width:60px;height:66px}.train-row{gap:4px}}
+
+  .bigger-row{display:flex;justify-content:center;align-items:center;gap:18px;
+    min-height:130px;padding:8px 2px}
+  .big-num{width:120px;height:120px;border:3px solid var(--wood);border-radius:22px;
+    background:var(--paper);font-family:var(--font-num);font-size:62px;font-weight:bold;
+    color:var(--ink);transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .big-num:hover{transform:translateY(-3px);border-color:var(--teal)}
+  @media(max-width:470px){.big-num{width:96px;height:96px;font-size:48px}}
+
+  .opts-num{display:flex;justify-content:center;gap:18px;margin:16px 0 4px}
+  .num-btn{width:88px;height:88px;border:2.5px solid var(--wood);border-radius:22px;
+    background:var(--paper);font-family:var(--font-num);font-size:44px;font-weight:bold;
+    color:var(--ink);transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .num-btn:hover{transform:translateY(-3px);border-color:var(--teal)}
+  @media(max-width:470px){.opts-num{gap:12px}.num-btn{width:76px;height:76px;font-size:37px}}
+  .num-btn.wiggle{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+  .num-btn.good{background:var(--green-soft);border-color:var(--green);color:#3F6A37}
+  .cmp-side.good{background:var(--green-soft);border-color:var(--green)}
+  .big-num.good{background:var(--green-soft);border-color:var(--green);color:#3F6A37}
+  .big-num.wiggle{animation:shake .4s}
+  .cmp-side.wiggle{animation:shake .4s}
+
+  /* ---- 拓展篇新题型 ---- */
+  .shape-btn{border:2.5px solid var(--wood);border-radius:22px;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .shape-btn:hover{transform:translateY(-3px);border-color:var(--teal)}
+  .shape-btn.wiggle{animation:shake .4s}
+  .shape-btn.good{background:var(--green-soft);border-color:var(--green)}
+  .shape-row{display:flex;justify-content:center;gap:16px;margin:8px 0 2px;flex-wrap:wrap}
+  .shape-row .shape-btn{width:106px;height:106px}
+  .shape-row .shape-btn svg{width:66px;height:66px}
+  @media(max-width:470px){.shape-row{gap:12px}.shape-row .shape-btn{width:88px;height:88px}
+    .shape-row .shape-btn svg{width:54px;height:54px}}
+
+  .pos-scene{position:relative;height:290px;max-width:420px;margin:4px auto 0}
+  .pos-anchor{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);pointer-events:none}
+  .pos-anchor svg{width:120px;height:120px}
+  .pos-zone{position:absolute;border:2.5px dashed var(--wood);border-radius:16px;
+    background:rgba(255,253,247,.65);display:flex;align-items:center;justify-content:center;
+    transition:border-color .15s,background .15s,transform .15s}
+  .pos-zone:hover{border-color:var(--teal);transform:translateY(-2px)}
+  .pos-zone.good{border-color:var(--green);background:var(--green-soft)}
+  .pos-zone.wiggle{animation:shake .4s}
+  .pos-zone .ic{width:46px;height:46px}
+  .pos-flyer{position:absolute;right:4px;bottom:2px;pointer-events:none;animation:bob 1.8s ease-in-out infinite}
+  .pos-flyer .ic{width:40px;height:40px}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+  .cmp2-row{display:flex;justify-content:center;align-items:flex-end;gap:18px;margin:6px 0 2px}
+  .cmp2-card{width:150px;height:160px;border:2.5px solid var(--wood);border-radius:20px;
+    background:var(--paper);display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .cmp2-card:hover{transform:translateY(-3px);border-color:var(--teal)}
+  .cmp2-card svg{height:auto;max-height:100%}
+  .cmp2-card.wiggle{animation:shake .4s}
+  .cmp2-card.good{background:var(--green-soft);border-color:var(--green)}
+  @media(max-width:470px){.cmp2-row{gap:12px}.cmp2-card{width:118px;height:126px}}
+
+  .seesaw-wrap{position:relative;width:min(340px,100%);height:212px;margin:0 auto}
+  .seesaw-wrap>svg{position:absolute;left:0;bottom:0;width:100%;height:100%;pointer-events:none}
+  .seesaw-item{position:absolute;width:66px;height:66px;border:2.5px solid transparent;
+    border-radius:16px;transition:border-color .15s,background .15s,transform .15s}
+  .seesaw-item:hover{transform:translateY(-3px)}
+  .seesaw-item svg{width:66px;height:66px}
+  .seesaw-item.wiggle{animation:shake .4s}
+  .seesaw-item.good{border-color:var(--green);background:var(--green-soft)}
+
+  .queue-row{display:flex;justify-content:center;align-items:center;gap:8px;
+    margin:10px 0 2px;padding:8px 2px;flex-wrap:nowrap;overflow-x:auto}
+  .queue-item{width:52px;height:52px;flex:none}
+  .queue-start{display:flex;align-items:center;flex:none;color:var(--teal-deep)}
+  .queue-start svg{width:30px;height:24px}
+
+  .cmp3-row{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:6px 0 2px}
+  .cmp3-card{width:102px;height:122px;border:2.5px solid var(--wood);border-radius:18px;
+    background:var(--paper);display:flex;align-items:flex-end;justify-content:center;
+    overflow:hidden;transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .cmp3-card:hover{transform:translateY(-3px);border-color:var(--teal)}
+  .cmp3-card svg{height:auto}
+  .cmp3-card.wiggle{animation:shake .4s}
+  .cmp3-card.good{background:var(--green-soft);border-color:var(--green)}
+  @media(max-width:470px){.cmp3-card{width:86px;height:102px}}
+
+  .clock-fig{display:flex;justify-content:center;padding:4px 0}
+  .clock-fig svg{width:200px;height:200px}
+  @media(max-width:470px){.clock-fig svg{width:168px;height:168px}}
+
+  .money-row{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;flex-wrap:wrap}
+  .money-card{width:112px;height:76px;border:2.5px solid var(--wood);border-radius:12px;
+    background:#FFFDF7;display:flex;align-items:center;justify-content:center;
+    transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .money-card:hover{transform:translateY(-3px);border-color:var(--teal)}
+  .money-card svg{width:98px;height:60px}
+  .money-card.wiggle{animation:shake .4s}
+  .money-card.good{background:var(--green-soft);border-color:var(--green)}
+  @media(max-width:470px){.money-card{width:96px;height:66px}.money-card svg{width:84px;height:52px}}
+  .change-row{display:flex;justify-content:center;align-items:center;gap:14px;margin:6px 0 2px;flex-wrap:wrap}
+  .change-goods{position:relative;width:96px;height:96px;flex:none}
+  .change-goods .ic{width:96px;height:96px}
+  .price-tag{position:absolute;right:-16px;top:-10px;background:var(--honey);color:#7A5E20;
+    font-weight:bold;border-radius:10px;padding:4px 8px;font-size:15px;
+    box-shadow:0 2px 0 #D9AE62;font-family:var(--font-num)}
+  .change-arrow{font-size:28px;color:var(--teal-deep);font-weight:bold;flex:none}
+  .change-pay svg{width:92px;height:56px}
+  @media(max-width:470px){.change-goods{width:80px;height:80px}.change-goods .ic{width:80px;height:80px}}
+
+  .zero-fig{display:flex;justify-content:center;padding:6px 0}
+  .zero-fig svg{width:180px;height:160px}
+  @media(max-width:470px){.zero-fig svg{width:150px;height:134px}}
+
+  .pattern-row{display:flex;justify-content:center;align-items:center;gap:10px;
+    margin:8px 0 2px;flex-wrap:wrap}
+  .ptile{width:56px;height:56px;border:2.5px solid var(--wood);border-radius:14px;
+    background:var(--teal-soft);display:flex;align-items:center;justify-content:center;flex:none}
+  .ptile svg{width:38px;height:38px}
+  .ptile.q{border-style:dashed;background:var(--honey-soft);animation:carPulse 1.6s infinite}
+  .ptile.q::after{content:"?";font-family:var(--font-num);font-size:30px;font-weight:bold;color:#C9992A}
+  @media(max-width:470px){.ptile{width:48px;height:48px}.ptile svg{width:32px;height:32px}}
+
+  .sort-grid{display:grid;grid-template-columns:repeat(2,132px);gap:14px;justify-content:center;margin:6px 0 2px}
+  .sort-card{height:110px;border:2.5px solid var(--wood);border-radius:18px;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .15s,border-color .15s,background .15s;
+    box-shadow:0 5px 0 rgba(227,220,198,.7)}
+  .sort-card:hover{transform:translateY(-3px);border-color:var(--teal)}
+  .sort-card .ic{width:66px;height:66px}
+  .sort-card.wiggle{animation:shake .4s}
+  .sort-card.good{background:var(--green-soft);border-color:var(--green)}
+  @media(max-width:470px){.sort-grid{grid-template-columns:repeat(2,120px);gap:11px}
+    .sort-card{height:96px}.sort-card .ic{width:58px;height:58px}}
+
+  .group-row{display:flex;justify-content:center;align-items:center;gap:10px;margin:6px 0 2px;flex-wrap:wrap}
+  .group-box{display:inline-flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:5px;
+    padding:10px;border:2.5px dashed var(--teal);border-radius:16px;background:var(--teal-soft)}
+  .group-box .ic{width:34px;height:34px}
+  .group-plus{font-family:var(--font-num);font-size:32px;font-weight:bold;color:var(--teal-deep)}
+  @media(max-width:470px){.group-box .ic{width:28px;height:28px}}
+
+  .pairs-row{display:flex;justify-content:center;align-items:center;gap:10px;
+    margin:6px auto 2px;flex-wrap:wrap;max-width:430px}
+  .pair-ring{display:inline-flex;align-items:center;justify-content:center;gap:2px;
+    border:2.5px dashed var(--teal);border-radius:999px;padding:6px 8px;
+    background:rgba(230,242,241,.55)}
+  .pair-ring.alone{border-color:#E8A9C0;background:#FCEDEC}
+  .pair-ring .ic{width:34px;height:34px}
+  @media(max-width:470px){.pair-ring .ic{width:30px;height:30px}}
+
+  .feedback{min-height:24px;margin-top:12px;text-align:center;font-size:14px;line-height:1.6}
+  .feedback.ok{color:#3F7A57}.feedback.no{color:#B06A62}
+
+  .hear-row{display:flex;justify-content:center;margin-top:16px}
+  .btn-hear{display:inline-flex;align-items:center;gap:8px;background:var(--teal);
+    color:#FFF;border-radius:999px;padding:13px 26px;font-size:15px;font-weight:500;
+    box-shadow:0 4px 0 var(--teal-deep);transition:transform .15s}
+  .btn-hear:hover{transform:translateY(-2px)}
+  .btn-hear:active{transform:translateY(1px)}
+  .btn-hear svg{width:18px;height:18px;fill:currentColor}
+
+  /* 完成屏 */
+  .done-box{text-align:center;padding:26px 10px 18px;position:relative}
+  .done-box .cup{width:110px;height:110px;margin:0 auto}
+  .done-box h3{font-size:30px;letter-spacing:2px;margin:10px 0 4px}
+  .done-box p{font-size:15px;color:var(--ink-soft);margin:0 0 6px}
+  .done-box p b{font-family:var(--font-num);font-size:22px;color:#C9992A}
+  .done-actions{display:flex;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;
+    padding:12px 22px;font-size:14.5px;font-weight:500;transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--teal);color:#FFF;box-shadow:0 4px 0 var(--teal-deep)}
+  .btn-ghost{border:1.5px solid var(--wood);background:var(--card);color:var(--ink-soft)}
+
+  .foot{text-align:center;margin-top:26px;font-size:12px;color:var(--faint);line-height:1.9}
+
+  .star-pop{position:fixed;left:50%;top:40%;translate:-50% -50%;z-index:30;pointer-events:none;
+    display:none;flex-direction:column;align-items:center;gap:8px;
+    background:var(--card);border:2px solid var(--honey);border-radius:22px;padding:24px 34px;
+    box-shadow:0 12px 30px rgba(80,80,60,.18)}
+  .star-pop.show{display:flex;animation:pop .45s cubic-bezier(.2,1.5,.5,1)}
+  .star-pop svg{width:60px;height:60px;fill:var(--honey);stroke:#D4A44A;stroke-width:1}
+  .star-pop span{font-size:20px;letter-spacing:1px}
+  @keyframes pop{from{opacity:0;scale:.5;rotate:-14deg}to{opacity:1;scale:1;rotate:0deg}}
+
+  .voice-mask{position:fixed;inset:0;background:rgba(35,45,40,.42);z-index:40;
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .voice-mask.show{display:flex}
+  .voice-panel{background:var(--card);border:1.5px solid var(--wood);border-radius:22px;
+    padding:24px 26px;width:min(470px,100%);max-height:82vh;overflow:auto;
+    box-shadow:0 18px 40px rgba(50,55,40,.22)}
+  .vp-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .vp-head h3{margin:0;font-size:20px;letter-spacing:1px}
+  .vp-close{font-size:25px;line-height:1;color:var(--ink-soft);padding:0 8px;border-radius:8px}
+  .vp-close:hover{background:var(--paper);color:var(--ink)}
+  .vp-desc{margin:8px 0 16px;font-size:13px;color:var(--ink-soft);line-height:1.7}
+  .vp-empty{font-size:13px;color:var(--ink-soft);background:var(--paper);
+    border-radius:10px;padding:12px;line-height:1.7}
+  .vp-default{width:100%;border:1.5px solid var(--wood);border-radius:999px;
+    padding:10px;font-size:14px;color:var(--ink-soft);margin-top:14px}
+  .vp-default:hover{border-color:var(--seal);color:var(--ink)}
+  .vp-foot{text-align:center;font-size:12px;color:var(--faint);margin-top:12px}
+
+  /* 回目录（与其它页一致） */
+  .home-link{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    height:38px;padding:0 11px;text-decoration:none;color:inherit;flex:none;
+    background:var(--card,#FFFDF6);border:2px solid var(--line,var(--wood,#DED6BE));
+    border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap;
+    box-shadow:0 2px 0 rgba(0,0,0,.06)}
+  .home-link svg{width:17px;height:17px;fill:none;stroke:currentColor;
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .home-link:active{transform:translateY(2px);box-shadow:none}
+  @media(max-width:460px){.home-link span{display:none}.home-link{padding:0 9px;height:36px}}
+  /* 关卡印章 + 答对时来接答案的小动物 */
+  .stamp-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:10px 0 2px}
+  .stamp-cell{width:14px;height:14px;border-radius:4px;background:#EFE8D6;border:1.5px solid #D8CDB2;transform:rotate(-5deg)}
+  .stamp-cell.on{background:#C4543F;border-color:#A94836}
+  .stamp-tip{text-align:center;font-size:11.5px;color:#8A7A55;margin:2px 0 0}
+  .pet-cheer{position:fixed;left:50%;margin-left:-34px;bottom:20%;width:68px;height:68px;
+    z-index:70;pointer-events:none;animation:petHop 1.4s ease forwards}
+  .pet-cheer svg{width:100%;height:100%}
+  @keyframes petHop{0%{transform:translateY(36px) scale(.5);opacity:0}
+    22%{transform:translateY(-14px) scale(1.15);opacity:1}
+    55%{transform:translateY(0) scale(1);opacity:1}
+    100%{transform:translateY(-52px) scale(.85);opacity:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="seal">数</div>
+      <div>
+        <h1>可心学数学</h1>
+        <p>加减法 · 图形 · 钟表 · 钱币 · 单双数</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <a class="home-link" href="../" aria-label="回到目录" title="回到目录"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-6h4v6"/></svg><span>目录</span></a>
+      <button class="voice-btn" id="voiceBtn" aria-label="声音说明">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15zM14 3.2v2.1a6.8 6.8 0 010 13.4v2.1a8.8 8.8 0 000-17.6z"/></svg>
+        <span>声音</span>
+      </button>
+      <div class="star-box" aria-live="polite">
+        <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
+        小星星 <b id="starCount">0</b>
+      </div>
+    </div>
+  </header>
+
+  <div class="notice" id="notice"></div>
+
+  <!-- 关卡地图 -->
+  <section class="view active" id="mapView">
+    <div class="intro">
+      <h2>今天玩哪一关？</h2>
+      <p>听题目，点答案，答对收小星星</p>
+      <div class="scribble">1 2 3 ~</div>
+      <div class="stamp-row" id="stampRow"></div>
+      <p class="stamp-tip" id="stampTip"></p>
+    </div>
+    <div class="level-grid" id="levelGrid"></div>
+    <div class="parent-note">
+      <b>给家长：</b>一共 <b>33 关 330 题</b>。第 1~20 关从数一数、比多少，一路学到二十以内加减法、凑十法、找规律；第 21~33 关是更多学习类型——认形状、图形找一找、上下左右、比长短高低轻重、排第几（序数）、谁最大、认识钟表（整点）、认识人民币、认识零、图形规律、分类、成组数（乘法启蒙）、单双数。每题都会<strong>自动念题目</strong>，孩子不识字也能玩：看图、听题、点答案。答对得一颗小星星（每题只发一次），答错会抖一抖并重听题目，多试几次就好。进了关卡听不清时，点下面的「再听一遍」。所有声音都是提前录好的，微信里直接打开就能听；第一次先点一下屏幕，没声音就关掉静音键、调大媒体音量。
+    </div>
+  </section>
+
+  <!-- 答题页 -->
+  <section class="view" id="playView">
+    <div class="play-head">
+      <button class="back" id="backBtn">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg> 回到关卡
+      </button>
+      <div class="play-meta">第 <b id="qPos">1</b> / <b id="qTotal">10</b> 题</div>
+    </div>
+    <div class="progress"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="stage" id="stage"></div>
+    <div class="hear-row">
+      <button class="btn-hear" id="hearBtn">
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 8a4.5 4.5 0 010 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        再听一遍
+      </button>
+    </div>
+  </section>
+
+  <div class="foot">听题目 · 点答案 · 收星星　|　不需要登录，只记玩了多久</div>
+</div>
+
+<div class="star-pop" id="starPop">
+  <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
+  <span>答对啦！得一颗星</span>
+</div>
+
+<div class="voice-mask" id="voiceMask">
+  <div class="voice-panel" role="dialog" aria-modal="true" aria-labelledby="voiceTitle">
+    <div class="vp-head">
+      <h3 id="voiceTitle">声音说明</h3>
+      <button class="vp-close" id="voiceClose" aria-label="关闭">×</button>
+    </div>
+    <p class="vp-desc">这一页用的是<strong>提前录好的声音</strong>，不依赖浏览器朗读，所以微信里、各种手机浏览器里都能听。</p>
+    <div class="vp-empty" id="voiceStatus">点下面的按钮试一下，听到「你好」就说明声音正常。</div>
+    <button class="vp-default" id="voiceTest">▶ 测试一下声音</button>
+    <div class="vp-foot">没声音时：关掉手机侧边静音键，把媒体音量调大，再点一次测试。</div>
+  </div>
+</div>
+
+<script src="../cloud.js"></script>
+<script src="../usage.js"></script>
+<script src="../fun.js"></script>
+<script src="data.js?v=2"></script>
+<script>
+const META = window.MATH_META || {total:0, levels:[]};
+const DATA = window.MATH_DATA || [];
+
+/* ---------------- 小图标（手绘 SVG） ---------------- */
+const IC = {
+  duck:'<ellipse cx="52" cy="58" rx="26" ry="21" fill="#F7D354" stroke="#B8912E" stroke-width="2.5"/><path d="M34 62q10-12 26-6" fill="none" stroke="#B8912E" stroke-width="2.2" stroke-linecap="round"/><circle cx="38" cy="38" r="13" fill="#F7D354" stroke="#B8912E" stroke-width="2.5"/><path d="M26 38l-12 3 12 5z" fill="#E8933A" stroke="#B8862E" stroke-width="1.8" stroke-linejoin="round"/><circle cx="35" cy="35" r="2.6" fill="#4A4238"/><path d="M44 78v6M58 78v6" stroke="#B8912E" stroke-width="2.4" stroke-linecap="round"/>',
+  bird:'<ellipse cx="50" cy="58" rx="22" ry="19" fill="#8FBFE8" stroke="#4A78A8" stroke-width="2.5"/><circle cx="40" cy="36" r="13" fill="#8FBFE8" stroke="#4A78A8" stroke-width="2.5"/><path d="M28 36l-10 2 10 4z" fill="#E8A23C" stroke="#B8781E" stroke-width="1.6" stroke-linejoin="round"/><circle cx="37" cy="33" r="2.6" fill="#4A4238"/><path d="M52 56q10-6 16 2-8 8-16 4z" fill="#6FA3D1" stroke="#4A78A8" stroke-width="2"/><path d="M44 76v6M56 76v6M44 82l-5 3M56 82l5 3" stroke="#4A78A8" stroke-width="2.2" stroke-linecap="round"/>',
+  apple:'<circle cx="50" cy="58" r="26" fill="#E05A4E" stroke="#9E3A32" stroke-width="2.5"/><path d="M50 32q-2-8 4-12" fill="none" stroke="#7A5232" stroke-width="3.4" stroke-linecap="round"/><path d="M54 24q12-8 16 2-10 8-16-2z" fill="#7FA86B" stroke="#557A46" stroke-width="2"/><path d="M38 50q-4 6-1 12" stroke="#F4A69E" stroke-width="4" fill="none" stroke-linecap="round"/>',
+  star:'<path d="M50 18l9.4 20.4L82 41l-17 15.4 4.6 22.6L50 67.6 30.4 79 35 56.4 18 41l22.6-2.6z" fill="#F7C948" stroke="#C9992A" stroke-width="2.5" stroke-linejoin="round"/><circle cx="44" cy="50" r="2.4" fill="#4A4238"/><circle cx="56" cy="50" r="2.4" fill="#4A4238"/><path d="M45 58q5 5 10 0" stroke="#4A4238" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+  fish:'<path d="M22 55q16-20 38-12t4 24q-24 8-42-12z" fill="#7FB3D9" stroke="#3E6E8E" stroke-width="2.5"/><path d="M62 44l14-10-2 16 2 16-14-10z" fill="#5E93BC" stroke="#3E6E8E" stroke-width="2.2" stroke-linejoin="round"/><circle cx="36" cy="52" r="3.2" fill="#4A4238"/><path d="M40 42q6 4 2 9" fill="none" stroke="#3E6E8E" stroke-width="1.8"/><circle cx="74" cy="26" r="3" fill="#BFD9EC"/><circle cx="82" cy="18" r="2" fill="#BFD9EC"/>',
+  flower:'<path d="M50 66v26" stroke="#5E8A4E" stroke-width="3.4" stroke-linecap="round"/><path d="M50 80q-11-6-16 2 8 8 16 2z" fill="#8FB573" stroke="#557A46" stroke-width="1.8"/><circle cx="50" cy="22" r="12" fill="#F5A8BC" stroke="#C97A92" stroke-width="2"/><circle cx="68" cy="36" r="12" fill="#F5A8BC" stroke="#C97A92" stroke-width="2"/><circle cx="61" cy="57" r="12" fill="#F5A8BC" stroke="#C97A92" stroke-width="2"/><circle cx="39" cy="57" r="12" fill="#F5A8BC" stroke="#C97A92" stroke-width="2"/><circle cx="32" cy="36" r="12" fill="#F5A8BC" stroke="#C97A92" stroke-width="2"/><circle cx="50" cy="40" r="10" fill="#F7C948" stroke="#C9992A" stroke-width="2"/>',
+  butterfly:'<ellipse cx="50" cy="58" rx="4.5" ry="13" fill="#6B4A86"/><circle cx="50" cy="42" r="6" fill="#6B4A86"/><path d="M46 38Q40 28 34 27M54 38Q60 28 66 27" stroke="#6B4A86" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="32" cy="48" rx="16" ry="19" fill="#C9A8E0" stroke="#9B72B8" stroke-width="2"/><ellipse cx="68" cy="48" rx="16" ry="19" fill="#C9A8E0" stroke="#9B72B8" stroke-width="2"/><ellipse cx="37" cy="72" rx="11" ry="13" fill="#E0C8F0" stroke="#9B72B8" stroke-width="2"/><ellipse cx="63" cy="72" rx="11" ry="13" fill="#E0C8F0" stroke="#9B72B8" stroke-width="2"/>',
+  balloon:'<path d="M50 74q8 10 0 18t4 8" stroke="#B84A40" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="42" rx="22" ry="27" fill="#E86A5E" stroke="#B84A40" stroke-width="2.5"/><path d="M38 28q-5 8-1 16" stroke="#F4A69E" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M45 68h10l-5 8z" fill="#B84A40"/>',
+  tree:'<path d="M46 62h8v26h-8z" fill="#9A6B3F" stroke="#6E4A28" stroke-width="2.4"/><circle cx="50" cy="34" r="21" fill="#8FB573" stroke="#557A46" stroke-width="2.5"/><circle cx="31" cy="48" r="15" fill="#9DBF82" stroke="#557A46" stroke-width="2.5"/><circle cx="69" cy="48" r="15" fill="#9DBF82" stroke="#557A46" stroke-width="2.5"/><circle cx="43" cy="30" r="2.2" fill="#557A46"/><circle cx="58" cy="38" r="2.2" fill="#557A46"/>',
+  house:'<path d="M24 48h52v40H24z" fill="#F2DCB8" stroke="#B8912E" stroke-width="2.5"/><path d="M18 50L50 20l32 30z" fill="#E08A5E" stroke="#A85E38" stroke-width="2.5" stroke-linejoin="round"/><path d="M42 88V66h16v22" fill="#B8763F" stroke="#8A5426" stroke-width="2.2"/><circle cx="57" cy="77" r="1.8" fill="#5E3A16"/><rect x="30" y="56" width="10" height="10" rx="2" fill="#BFE0E8" stroke="#6E98A8" stroke-width="2"/>',
+  banana:'<path d="M28 34q-6 26 18 38 26 12 38-8 2-4-2-4-26 10-40-12-4-8-8-18-2-4-6 4z" fill="#F7D354" stroke="#B8912E" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 32l-4-6M84 60l4 6" stroke="#8A6B1E" stroke-width="3" stroke-linecap="round"/>',
+  watermelon:'<circle cx="50" cy="54" r="30" fill="#7FA86B" stroke="#557A46" stroke-width="2.5"/><path d="M32 32q-8 22 0 44M50 24q-6 30 0 60M68 32q8 22 0 44" fill="none" stroke="#5E8A4E" stroke-width="4" stroke-linecap="round"/><path d="M50 18q4-6 10-6" stroke="#6E4A28" stroke-width="3" fill="none" stroke-linecap="round"/>',
+  grape:'<circle cx="42" cy="40" r="10" fill="#B48AD9" stroke="#855AAE" stroke-width="2.2"/><circle cx="60" cy="40" r="10" fill="#B48AD9" stroke="#855AAE" stroke-width="2.2"/><circle cx="33" cy="56" r="10" fill="#C9A8E0" stroke="#855AAE" stroke-width="2.2"/><circle cx="51" cy="56" r="10" fill="#B48AD9" stroke="#855AAE" stroke-width="2.2"/><circle cx="69" cy="56" r="10" fill="#C9A8E0" stroke="#855AAE" stroke-width="2.2"/><circle cx="42" cy="72" r="10" fill="#B48AD9" stroke="#855AAE" stroke-width="2.2"/><circle cx="60" cy="72" r="10" fill="#C9A8E0" stroke="#855AAE" stroke-width="2.2"/><path d="M51 28q0-10 8-14" stroke="#6E4A28" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M59 14q10-2 14 6-10 4-14-6z" fill="#8FB573" stroke="#557A46" stroke-width="1.8"/>',
+  bear:'<circle cx="32" cy="34" r="10" fill="#B8763F" stroke="#8A5426" stroke-width="2.4"/><circle cx="68" cy="34" r="10" fill="#B8763F" stroke="#8A5426" stroke-width="2.4"/><circle cx="32" cy="34" r="4.4" fill="#E3B98A"/><circle cx="68" cy="34" r="4.4" fill="#E3B98A"/><circle cx="50" cy="46" r="22" fill="#C98A4E" stroke="#8A5426" stroke-width="2.5"/><ellipse cx="50" cy="54" rx="9" ry="7" fill="#F2DCB8"/><path d="M46 51q4-3 8 0l-2 5h-4z" fill="#5E3A16"/><circle cx="41" cy="42" r="2.8" fill="#4A4238"/><circle cx="59" cy="42" r="2.8" fill="#4A4238"/><ellipse cx="50" cy="80" rx="20" ry="14" fill="#C98A4E" stroke="#8A5426" stroke-width="2.5"/>',
+  rabbit:'<ellipse cx="40" cy="20" rx="7" ry="17" fill="#F5F0E8" stroke="#C9B8A0" stroke-width="2.4" transform="rotate(-8 40 20)"/><ellipse cx="60" cy="20" rx="7" ry="17" fill="#F5F0E8" stroke="#C9B8A0" stroke-width="2.4" transform="rotate(8 60 20)"/><ellipse cx="40" cy="21" rx="3" ry="10" fill="#F5B8C8" transform="rotate(-8 40 21)"/><ellipse cx="60" cy="21" rx="3" ry="10" fill="#F5B8C8" transform="rotate(8 60 21)"/><circle cx="50" cy="52" r="22" fill="#F5F0E8" stroke="#C9B8A0" stroke-width="2.5"/><circle cx="42" cy="48" r="2.8" fill="#4A4238"/><circle cx="58" cy="48" r="2.8" fill="#4A4238"/><path d="M47 58q3 3 6 0" stroke="#4A4238" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="50" cy="55" r="2.2" fill="#D96A8E"/>',
+  pencil:'<g transform="rotate(-18 50 52)"><rect x="8" y="46" width="66" height="14" rx="3" fill="#F2C879" stroke="#C9992A" stroke-width="2.2"/><rect x="8" y="46" width="66" height="5" fill="#F7DA96"/><path d="M74 46l16 7-16 7z" fill="#F2DCB8" stroke="#C9992A" stroke-width="2.2" stroke-linejoin="round"/><path d="M86 50.4l4 2.6-4 2.6z" fill="#4A4238"/><rect x="2" y="45" width="8" height="16" rx="2" fill="#E08A5E" stroke="#A85E38" stroke-width="2"/></g>',
+  giraffe:'<path d="M56 88V38q0-16 12-20l6 10-6 4v56z" fill="#F2C879" stroke="#C9992A" stroke-width="2.5" stroke-linejoin="round"/><path d="M70 14l6 12M64 16l2 10" stroke="#8A5426" stroke-width="2.6" stroke-linecap="round"/><circle cx="72" cy="16" r="7" fill="#F2C879" stroke="#C9992A" stroke-width="2.5"/><circle cx="74" cy="15" r="1.8" fill="#4A4238"/><path d="M78 22l6 3" stroke="#C9992A" stroke-width="2" stroke-linecap="round"/><path d="M56 78q-18 0-20 12h30" fill="#F2C879" stroke="#C9992A" stroke-width="2.5" stroke-linejoin="round"/><path d="M58 40q4 6 0 12M64 34q4 6 0 12M58 60q4 6 0 12" stroke="#B8912E" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 88v4M70 88v4" stroke="#C9992A" stroke-width="3" stroke-linecap="round"/>',
+  candy:'<circle cx="50" cy="50" r="18" fill="#F5A8BC" stroke="#C97A92" stroke-width="2.5"/><path d="M42 42q8-4 16 0M42 58q8 4 16 0" stroke="#C97A92" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M50 40l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6-4.5-4 6-1z" fill="#FFF6E4" stroke="#E8B4C4" stroke-width="1.4"/><path d="M30 44q-12-8-16 6 4 14 16 6M70 44q12-8 16 6-4 14-16 6" fill="#F5B8C8" stroke="#C97A92" stroke-width="2.2" stroke-linejoin="round"/>'
+};
+/* 几何形状（无脸，用于图形题） */
+const SP = {
+  circle:'<circle cx="50" cy="50" r="34" fill="#8FBFE8" stroke="#4A78A8" stroke-width="4"/>',
+  tri:'<path d="M50 16L86 82H14z" fill="#F2C879" stroke="#C9992A" stroke-width="4" stroke-linejoin="round"/>',
+  square:'<rect x="18" y="18" width="64" height="64" rx="6" fill="#A8CBA0" stroke="#5E8A4E" stroke-width="4"/>',
+  rect:'<rect x="8" y="32" width="84" height="40" rx="6" fill="#E0A8C0" stroke="#B4688E" stroke-width="4"/>',
+  star:'<path d="M50 14l10.6 23 25.4 2.8-19 17.2 5.2 25L50 69 27.8 82l5.2-25-19-17.2 25.4-2.8z" fill="#F7C948" stroke="#C9992A" stroke-width="4" stroke-linejoin="round"/>',
+  heart:'<path d="M50 82C22 62 14 46 22 32c7-12 22-10 28 2 6-12 21-14 28-2 8 14 0 30-28 50z" fill="#E88A9E" stroke="#B4688E" stroke-width="4" stroke-linejoin="round"/>'
+};
+const spSvg = (k) => '<svg viewBox="0 0 100 100" aria-hidden="true">'+SP[k]+'</svg>';
+const spWrap = (k) => '<span class=""><svg class="ic" viewBox="0 0 100 100" aria-hidden="true">'+SP[k]+'</svg></span>';
+/* 空容器（认识零） */
+const CONT = {
+  plate:'<ellipse cx="50" cy="62" rx="38" ry="14" fill="#FFFDF7" stroke="#C9B8A0" stroke-width="3"/><ellipse cx="50" cy="59" rx="26" ry="8" fill="#F5F0E4" stroke="#D9CDB6" stroke-width="2"/>',
+  box:'<path d="M18 44h64v38a6 6 0 01-6 6H24a6 6 0 01-6-6z" fill="#E3D2A8" stroke="#B8A070" stroke-width="3"/><path d="M18 44l8-14h48l8 14" fill="#F2E4C0" stroke="#B8A070" stroke-width="3" stroke-linejoin="round"/><path d="M18 44h64" stroke="#B8A070" stroke-width="3"/>',
+  basket:'<path d="M22 48h56l-7 32a6 6 0 01-6 5H35a6 6 0 01-6-5z" fill="#E3B98A" stroke="#A8783E" stroke-width="3" stroke-linejoin="round"/><path d="M28 48q22-24 44 0" fill="none" stroke="#A8783E" stroke-width="3.4"/><path d="M36 56l4 22M50 56v22M64 56l-4 22" stroke="#C9985E" stroke-width="2.4"/>'
+};
+const contSvg = (k) => '<svg viewBox="0 0 100 100" aria-hidden="true" style="width:100%;height:100%">'+CONT[k]+'</svg>';
+/* 纸币/硬币（认识人民币） */
+const BILL = {
+  m1:'<circle cx="60" cy="36" r="30" fill="#E8C878" stroke="#B8912E" stroke-width="3"/><circle cx="60" cy="36" r="24" fill="none" stroke="#C9992A" stroke-width="2" stroke-dasharray="4 3"/><text x="60" y="43" text-anchor="middle" font-size="20" font-weight="bold" fill="#7A5E20" font-family="Trebuchet MS">1元</text>',
+  m5:'<rect x="6" y="12" width="108" height="48" rx="6" fill="#C8A8D8" stroke="#8E5AAE" stroke-width="3"/><circle cx="60" cy="36" r="15" fill="none" stroke="#FFFDF7" stroke-width="2.4"/><text x="60" y="43" text-anchor="middle" font-size="19" font-weight="bold" fill="#5E3A78" font-family="Trebuchet MS">5元</text>',
+  m10:'<rect x="6" y="12" width="108" height="48" rx="6" fill="#9FC5E8" stroke="#3E6E9E" stroke-width="3"/><circle cx="60" cy="36" r="15" fill="none" stroke="#FFFDF7" stroke-width="2.4"/><text x="60" y="43" text-anchor="middle" font-size="19" font-weight="bold" fill="#1E4A78" font-family="Trebuchet MS">10元</text>',
+  m20:'<rect x="6" y="12" width="108" height="48" rx="6" fill="#E8B48A" stroke="#A8683E" stroke-width="3"/><circle cx="60" cy="36" r="15" fill="none" stroke="#FFFDF7" stroke-width="2.4"/><text x="60" y="43" text-anchor="middle" font-size="19" font-weight="bold" fill="#7A3E16" font-family="Trebuchet MS">20元</text>',
+  m50:'<rect x="6" y="12" width="108" height="48" rx="6" fill="#A8CBA0" stroke="#5E8A4E" stroke-width="3"/><circle cx="60" cy="36" r="15" fill="none" stroke="#FFFDF7" stroke-width="2.4"/><text x="60" y="43" text-anchor="middle" font-size="19" font-weight="bold" fill="#2E5A28" font-family="Trebuchet MS">50元</text>',
+  m100:'<rect x="6" y="12" width="108" height="48" rx="6" fill="#E89A8E" stroke="#B84A3E" stroke-width="3"/><circle cx="60" cy="36" r="15" fill="none" stroke="#FFFDF7" stroke-width="2.4"/><text x="60" y="43" text-anchor="middle" font-size="19" font-weight="bold" fill="#8E2A1E" font-family="Trebuchet MS">100元</text>'
+};
+const billSvg = (k) => '<svg viewBox="0 0 120 72" aria-hidden="true" style="width:100%;height:100%">'+BILL[k]+'</svg>';
+/* 钟表（认识整点） */
+function clockSVG(h, mini){
+  const dots = [];
+  for(let i=0;i<12;i++){
+    const a = i*Math.PI/6, r1 = 44, r2 = i%3===0?37:40;
+    dots.push('<line x1="'+(60+r1*Math.sin(a)).toFixed(1)+'" y1="'+(60-r1*Math.cos(a)).toFixed(1)
+      +'" x2="'+(60+r2*Math.sin(a)).toFixed(1)+'" y2="'+(60-r2*Math.cos(a)).toFixed(1)
+      +'" stroke="#4E8288" stroke-width="'+(i%3===0?3.4:2)+'" stroke-linecap="round"/>');
+  }
+  const ha = (h%12)*Math.PI/6;
+  return '<svg viewBox="0 0 120 120" aria-hidden="true"'+(mini?' class="ic"':'')+'>'
+    +'<circle cx="60" cy="60" r="54" fill="#FFFDF7" stroke="#4E8288" stroke-width="4"/>'
+    +'<circle cx="60" cy="60" r="47" fill="#F5FAF8" stroke="#B9D8D5" stroke-width="1.6"/>'
+    +dots.join('')
+    +'<line x1="60" y1="60" x2="'+(60+22*Math.sin(ha)).toFixed(1)+'" y2="'+(60-22*Math.cos(ha)).toFixed(1)
+    +'" stroke="#3E4A50" stroke-width="6" stroke-linecap="round"/>'
+    +'<line x1="60" y1="60" x2="60" y2="24" stroke="#D96A5E" stroke-width="4" stroke-linecap="round"/>'
+    +'<circle cx="60" cy="60" r="4.6" fill="#3E4A50"/></svg>';
+}
+/* 跷跷板（比轻重） */
+function seesawSVG(tilt){
+  return '<svg viewBox="0 0 340 200" aria-hidden="true">'
+    +'<path d="M170 118l-26 52h52z" fill="#C9B8A0" stroke="#A89878" stroke-width="3" stroke-linejoin="round"/>'
+    +'<g transform="rotate('+tilt+' 170 112)"><rect x="30" y="106" width="280" height="12" rx="6" fill="#B8763F" stroke="#8A5426" stroke-width="2.6"/></g>'
+    +'<circle cx="170" cy="112" r="7" fill="#8A5426"/></svg>';
+}
+const icSvg = (k) => '<svg class="ic" viewBox="0 0 100 100" aria-hidden="true">'+IC[k]+'</svg>';
+const icWrap = (k, crossed) =>
+  '<span class="'+(crossed?'crosswrap':'')+'">'+icSvg(k)+'</span>';
+
+const LOCO = '<svg class="train-loco" viewBox="0 0 100 100" aria-hidden="true">'
+  +'<circle cx="30" cy="14" r="6" fill="#D8D2C0"/><circle cx="42" cy="8" r="4.4" fill="#E3DCC6"/>'
+  +'<rect x="14" y="30" width="52" height="40" rx="9" fill="#6BA3A8" stroke="#4E8288" stroke-width="2.6"/>'
+  +'<rect x="22" y="38" width="24" height="18" rx="4" fill="#FFFDF7" stroke="#4E8288" stroke-width="2"/>'
+  +'<rect x="54" y="18" width="9" height="16" rx="2.5" fill="#4E8288"/>'
+  +'<circle cx="28" cy="76" r="10" fill="#3E4A50" stroke="#FFFDF7" stroke-width="2.4"/>'
+  +'<circle cx="56" cy="76" r="10" fill="#3E4A50" stroke="#FFFDF7" stroke-width="2.4"/></svg>';
+
+const CUP = '<svg class="cup" viewBox="0 0 100 100" aria-hidden="true">'
+  +'<path d="M28 22h44v14a22 22 0 01-44 0z" fill="#F2C879" stroke="#C9992A" stroke-width="2.6"/>'
+  +'<path d="M28 26H14a12 12 0 0014 14M72 26h14a12 12 0 01-14 14" fill="none" stroke="#C9992A" stroke-width="2.6"/>'
+  +'<path d="M44 56h12v10H44z" fill="#E8B45C" stroke="#C9992A" stroke-width="2"/>'
+  +'<rect x="34" y="66" width="32" height="10" rx="3" fill="#C9992A"/>'
+  +'<path d="M50 30l2.6 5.6 6.2.7-4.6 4.2 1.3 6.1-5.5-3.1-5.5 3.1 1.3-6.1-4.6-4.2 6.2-.7z" fill="#FFF6E4"/>'
+  +'</svg>';
+const CROWN = '<svg class="cup" viewBox="0 0 100 100" aria-hidden="true">'
+  +'<path d="M20 66L14 30l18 14 18-26 18 26 18-14-6 36z" fill="#F2C879" stroke="#C9992A" stroke-width="2.6" stroke-linejoin="round"/>'
+  +'<rect x="24" y="70" width="52" height="10" rx="4" fill="#C9992A"/>'
+  +'<circle cx="14" cy="26" r="5" fill="#E05A4E" stroke="#9E3A32" stroke-width="1.8"/>'
+  +'<circle cx="50" cy="14" r="5" fill="#8FB573" stroke="#557A46" stroke-width="1.8"/>'
+  +'<circle cx="86" cy="26" r="5" fill="#8FBFE8" stroke="#4A78A8" stroke-width="1.8"/>'
+  +'<path d="M50 40l2.6 5.6 6.2.7-4.6 4.2 1.3 6.1-5.5-3.1-5.5 3.1 1.3-6.1-4.6-4.2 6.2-.7z" fill="#FFF6E4"/>'
+  +'</svg>';
+const STAR_ICON = '<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
+
+/* ---------------- 星星 ---------------- */
+const STAR_KEY = 'kexin_math_stars_v1';
+function readJSON(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){ return {}; } }
+function writeJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function getStars(){ return readJSON(STAR_KEY); }
+function addStar(id){ const s=getStars(); if(s[id]) return false; s[id]=1; writeJSON(STAR_KEY,s); return true; }
+function refreshStars(){ document.getElementById('starCount').textContent = Object.keys(getStars()).length; }
+
+/* ---------------- 音频 ---------------- */
+const player = new Audio();
+player.preload = 'auto';
+function playAudio(src){
+  try{
+    player.onended = null;
+    player.pause(); player.src = src; player.load();
+    const p = player.play(); if(p && p.catch) p.catch(()=>{});
+  }catch(e){}
+}
+function stopAudio(){ try{ player.onended=null; player.pause(); }catch(e){} }
+function tone(f, d, delay){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    if(!window.__ac) window.__ac = new C();
+    const ac = window.__ac;
+    if(ac.state==='suspended' && ac.resume) ac.resume();
+    const o=ac.createOscillator(), g=ac.createGain(), t0=ac.currentTime+(delay||0);
+    o.type='sine'; o.frequency.value=f;
+    g.gain.setValueAtTime(.08,t0);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+d);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t0); o.stop(t0+d);
+  }catch(e){}
+}
+function okSound(){ tone(560,.15); tone(840,.22,.09); }
+function noSound(){ tone(220,.18); }
+function numAudio(v){ playAudio('audio/n'+String(v).padStart(2,'0')+'.mp3'); }
+
+const UA = navigator.userAgent||'';
+if(/MicroMessenger/i.test(UA)){
+  const n = document.getElementById('notice');
+  n.classList.add('show','wx');
+  n.innerHTML = '<b>微信里也能听声音啦</b>'
+    +'<span>这一页用的是提前录好的声音，微信里直接就能听。第一次打开先点一下屏幕，再点关卡就开始了。</span>'
+    +'<em>没声音的话：关掉手机侧边静音键、把媒体音量调大，再点一次。</em>';
+}
+
+/* ---------------- 状态 ---------------- */
+const state = { lv:null, idx:0, qs:[], locked:false };
+let nextTimer = 0;
+
+function show(view){
+  document.getElementById('mapView').classList.toggle('active', view==='map');
+  document.getElementById('playView').classList.toggle('active', view==='play');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function clearAll(){
+  if(nextTimer){ clearTimeout(nextTimer); nextTimer = 0; }
+  stopAudio();
+}
+function qOf(){ return state.qs[state.idx]; }
+function pad2(v){ return String(v).padStart(2,'0'); }
+
+/* ---------------- 关卡地图 ---------------- */
+function lvArtHTML(key){
+  switch(key){
+    case 'lv01': return icWrap('duck',false)+icWrap('duck',false)+icWrap('duck',false);
+    case 'lv02': return icWrap('apple',false)+'<span class="sign">比</span>'+icWrap('apple',false)+icWrap('apple',false)+icWrap('apple',false);
+    case 'lv03': return icWrap('apple',false)+'<span class="sign">+</span>'+icWrap('apple',false)+icWrap('apple',false);
+    case 'lv04': return icWrap('star',true)+icWrap('star',true)+icWrap('star',false)+icWrap('star',false);
+    case 'lv05': return '<span class="mini-car">1</span><span class="mini-car">2</span><span class="mini-car q">?</span><span class="mini-car">4</span>';
+    case 'lv06': return icWrap('star',false)+icWrap('star',false)+icWrap('star',false)+'<span class="sign">+</span>'+icWrap('star',false)+icWrap('star',false)+icWrap('star',false)+icWrap('star',false);
+    case 'lv07': return icWrap('fish',false)+icWrap('fish',false)+icWrap('fish',true)+'<span class="sign">−</span>';
+    case 'lv08': return '<span class="sign" style="font-size:40px">5</span><span class="sign">比</span><span class="sign" style="font-size:40px">9</span>';
+    case 'lv09': return icWrap('duck',false)+icWrap('duck',false)+'<span class="sign">+</span>'+icWrap('duck',false)+'<span class="sign">=?</span>';
+    case 'lv10': return CUP;
+    case 'lv11': return '<span class="mini-car">11</span><span class="mini-car">12</span><span class="mini-car q">?</span><span class="mini-car">14</span>';
+    case 'lv12': return '<span class="mini-car">10</span><span class="sign">+</span>'+icWrap('apple',false)+icWrap('apple',false)+'<span class="sign">=?</span>';
+    case 'lv13': return icWrap('star',false)+icWrap('star',false)+icWrap('star',false)+'<span class="sign">凑</span>'+icWrap('star',false)+icWrap('star',false)+icWrap('star',false);
+    case 'lv14': return '<span class="mini-car">2</span><span class="mini-car">4</span><span class="mini-car q">?</span><span class="mini-car">8</span>';
+    case 'lv15': return '<span class="mini-car">9</span><span class="sign">+</span><span class="mini-car">4</span><span class="sign">=?</span>';
+    case 'lv16': return '<span class="mini-car">15</span><span class="sign">−</span><span class="mini-car">3</span><span class="sign">=?</span>';
+    case 'lv17': return icWrap('duck',false)+icWrap('duck',false)+'<span class="sign">比</span>'+icWrap('fish',false)+icWrap('fish',false)+icWrap('fish',false);
+    case 'lv18': return '<span class="mini-car">3</span><span class="sign">+</span><span class="mini-car">2</span><span class="sign">+</span><span class="mini-car">1</span>';
+    case 'lv19': return icWrap('balloon',false)+'<span class="sign">±</span>'+icWrap('star',false)+'<span class="sign">=?</span>';
+    case 'lv20': return CROWN;
+    case 'lv21': return spWrap('circle')+spWrap('tri')+spWrap('square');
+    case 'lv22': return spWrap('tri')+'<span class="sign">里</span>'+spWrap('tri')+spWrap('circle');
+    case 'lv23': return icWrap('bird',false)+'<span class="sign">上</span>'+icWrap('tree',false);
+    case 'lv24': return icWrap('pencil',false)+'<span class="sign">比</span>'+icWrap('giraffe',false);
+    case 'lv25': return '<span class="mini-car">1</span>'+icWrap('duck',false)+icWrap('bird',false)+icWrap('fish',false)+'<span class="sign">?</span>';
+    case 'lv26': return icWrap('bear',false)+'<span class="sign">比</span>'+icWrap('bear',false);
+    case 'lv27': return clockSVG(3, true);
+    case 'lv28': return '<span class="mini-car" style="font-size:15px">1元</span><span class="sign">买</span>'+icWrap('candy',false);
+    case 'lv29': return icWrap('fish',false)+'<span class="sign">零</span>';
+    case 'lv30': return spWrap('circle')+spWrap('tri')+'<span class="mini-car q">?</span>';
+    case 'lv31': return icWrap('apple',false)+'<span class="sign">分</span>'+icWrap('duck',false);
+    case 'lv32': return icWrap('apple',false)+icWrap('apple',false)+'<span class="sign">组</span>'+icWrap('apple',false)+icWrap('apple',false);
+    case 'lv33': return icWrap('duck',false)+icWrap('duck',false)+'<span class="sign">双</span>'+icWrap('duck',false);
+    default: return '';
+  }
+}
+function renderMap(){
+  renderStamps();
+  const stars = getStars();
+  document.getElementById('levelGrid').innerHTML = META.levels.map((lv,i)=>{
+    const qs = DATA.filter(q=>q.lv===lv.key);
+    const got = qs.filter(q=>stars[q.id]).length;
+    return '<button class="level-card" data-key="'+lv.key+'" style="animation-delay:'+(i*30)+'ms">'
+      +'<div class="level-num">第 '+(i+1)+' 关</div>'
+      +'<div class="level-name">'+lv.name+'</div>'
+      +'<div class="level-sub">'+lv.sub+'</div>'
+      +'<div class="level-art">'+lvArtHTML(lv.key)+'</div>'
+      +'<div class="level-foot"><span class="level-count">'+got+' / '+lv.count+' 星</span>'
+      +(got>=lv.count?'<span class="level-done"><svg viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l7.1-7.1 1.4 1.4z"/></svg>全对过</span>':'')
+      +'</div></button>';
+  }).join('');
+  document.querySelectorAll('[data-key]').forEach(b=>{
+    b.addEventListener('click', ()=>openLevel(b.dataset.key));
+  });
+}
+
+/* ---------------- 答题 ---------------- */
+function openLevel(key){
+  clearAll();
+  state.lv = key;
+  state.qs = DATA.filter(q=>q.lv===key);
+  state.idx = 0;
+  document.getElementById('qTotal').textContent = state.qs.length;
+  show('play');
+  renderQ();
+  playAudio('audio/'+key+'.mp3');
+  player.onended = ()=>{ playSay(); };
+  nextTimer = setTimeout(()=>{ if(player.paused) playSay(); }, 3000);
+}
+function playSay(){
+  const q = qOf(); if(!q) return;
+  playAudio('audio/'+q.id+'.mp3');
+}
+function loadQ(i){
+  clearAll();
+  state.idx = i;
+  document.getElementById('qPos').textContent = i+1;
+  document.getElementById('progFill').style.width = (i*10)+'%';
+  renderQ();
+  playSay();
+}
+function nextQ(){
+  if(state.idx+1 < state.qs.length){ loadQ(state.idx+1); }
+  else{ finishLevel(); }
+}
+function figHTML(q){
+  if(q.type==='count'){
+    let h=''; for(let i=0;i<q.n;i++) h+=icWrap(q.icon,false);
+    return '<div class="fig">'+h+'</div>';
+  }
+  if(q.type==='add'){
+    const g=(n)=>{ let s=''; for(let i=0;i<n;i++) s+=icWrap(q.icon,false); return s; };
+    if(q.a===10 || q.b===10){
+      const first = q.a===10;
+      const one = first ? q.b : q.a;
+      return '<div class="expr-row">'
+        + (first ? '<span class="ten-box">'+g(10)+'</span>'
+                 : '<span class="expr-group">'+g(one)+'</span>')
+        + '<span class="expr-sign">+</span>'
+        + (first ? '<span class="expr-group">'+g(one)+'</span>'
+                 : '<span class="ten-box">'+g(10)+'</span>')
+        + '<span class="expr-sign">=</span><span class="expr-q">?</span></div>';
+    }
+    return '<div class="expr-row"><span class="expr-group">'+g(q.a)+'</span>'
+      +'<span class="expr-sign">+</span><span class="expr-group">'+g(q.b)+'</span>'
+      +'<span class="expr-sign">=</span><span class="expr-q">?</span></div>';
+  }
+  if(q.type==='sub'){
+    let h=''; for(let i=0;i<q.n;i++) h+=icWrap(q.icon, i>=q.n-q.k);
+    return '<div class="fig">'+h+'</div>';
+  }
+  if(q.type==='seq'){
+    let cars='';
+    q.seq.forEach(v=>{
+      cars += '<span class="car'+(v===0?' q':'')+'">'+(v===0?'?':v)+'<span class="wheel"></span></span>';
+    });
+    return '<div class="train-row">'+LOCO+cars+'</div>';
+  }
+  if(q.type==='next'){
+    return '<div class="bigger-row"><span class="big-num" style="pointer-events:none;background:var(--teal-soft);border-color:var(--teal)">'+q.a+'</span></div>';
+  }
+  if(q.type==='expr'){
+    let h='';
+    q.nums.forEach((v,i)=>{
+      h += '<span class="expr-num">'+v+'</span>';
+      if(i<q.ops.length) h += '<span class="expr-sign">'+(q.ops[i]==='-'?'−':'+')+'</span>';
+    });
+    h += '<span class="expr-sign">=</span><span class="expr-q">?</span>';
+    return '<div class="expr-row">'+h+'</div>';
+  }
+  if(q.type==='diff'){
+    const side=(ic,n)=>{ let s=''; for(let i=0;i<n;i++) s+=icWrap(ic,false); return s; };
+    return '<div class="cmp-row">'
+      +'<div class="cmp-side diff-side"><div class="diff-icons">'+side(q.iconL,q.nL)+'</div><div class="cmp-label">'+q.nl+' '+q.nL+' '+q.ql+'</div></div>'
+      +'<span class="cmp-vs">比</span>'
+      +'<div class="cmp-side diff-side"><div class="diff-icons">'+side(q.iconR,q.nR)+'</div><div class="cmp-label">'+q.nr+' '+q.nR+' '+q.qr+'</div></div>'
+      +'</div>';
+  }
+  /* ---- 拓展篇 ---- */
+  if(q.type==='shape'){
+    return '<div class="shape-row">'+q.optsShape.map((s,i)=>
+      '<button class="shape-btn" data-i="'+i+'" aria-label="图形选项">'+spSvg(s)+'</button>').join('')+'</div>';
+  }
+  if(q.type==='shapecount'){
+    /* 确定性布局：以题 id 做种子，重渲染不变 */
+    let seed=0; for(const c of q.id) seed=(seed*31+c.charCodeAt(0))>>>0;
+    const rnd=()=>{ seed=(seed+0x6D2B79F5)>>>0; let t=seed;
+      t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61);
+      return ((t^t>>>14)>>>0)/4294967296; };
+    const slots=[[34,46],[112,32],[200,48],[286,34],[64,132],[156,120],[248,134],[306,120]];
+    const bag=[];
+    for(let i=0;i<q.nT;i++) bag.push(q.target);
+    const others=['circle','tri','square','rect','star','heart'].filter(s=>s!==q.target);
+    for(let i=0;i<q.nO;i++) bag.push(others[Math.floor(rnd()*others.length)]);
+    for(let i=bag.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [bag[i],bag[j]]=[bag[j],bag[i]]; }
+    const placed=slots.slice(0,bag.length).sort((a,b)=>a[0]-b[0])
+      .map((s,i)=>'<g transform="translate('+(s[0]-26)+','+(s[1]-26)+') scale(0.62)">'+SP[bag[i]]+'</g>').join('');
+    return '<svg viewBox="0 0 340 200" style="width:100%;max-width:430px;height:auto;display:block;margin:0 auto" aria-hidden="true">'
+      +'<rect x="4" y="4" width="332" height="192" rx="18" fill="#F5FAF8" stroke="#D9E5E2" stroke-width="2" stroke-dasharray="6 5"/>'+placed+'</svg>';
+  }
+  if(q.type==='cmp'){
+    if(q.kind==='long'){
+      const PEN='<svg viewBox="0 0 160 70" style="width:100%;height:auto">'
+        +'<g transform="rotate(-5 80 35)">'
+        +'<rect x="10" y="26" width="106" height="15" rx="3" fill="#F2C879" stroke="#C9992A" stroke-width="2.2"/>'
+        +'<rect x="10" y="26" width="106" height="5" fill="#F7DA96"/>'
+        +'<path d="M116 26l26 7.5-26 7.5z" fill="#F2DCB8" stroke="#C9992A" stroke-width="2.2" stroke-linejoin="round"/>'
+        +'<path d="M134 30.4l8 3.1-8 3.1z" fill="#4A4238"/>'
+        +'<rect x="2" y="25" width="9" height="17" rx="2" fill="#E08A5E" stroke="#A85E38" stroke-width="2"/></g></svg>';
+      const wL=q.big==='L';
+      return '<div class="cmp2-row" style="align-items:center">'
+        +'<button class="cmp2-card" data-i="0" style="width:'+(wL?'62%':'40%')+'">'+PEN+'</button>'
+        +'<button class="cmp2-card" data-i="1" style="width:'+(wL?'40%':'62%')+'">'+PEN+'</button></div>';
+    }
+    if(q.kind==='tall'){
+      return '<div class="cmp2-row">'
+        +'<button class="cmp2-card" data-i="0"><svg viewBox="0 0 100 100" style="width:88%">'+IC[q.iconL]+'</svg></button>'
+        +'<button class="cmp2-card" data-i="1"><svg viewBox="0 0 100 100" style="width:88%">'+IC[q.iconR]+'</svg></button></div>';
+    }
+    const wl=q.iconL==='watermelon';
+    return '<div class="seesaw-wrap">'
+      +'<button class="seesaw-item" data-i="0" style="left:4%;top:'+(wl?56:96)+'px">'+icSvg(q.iconL)+'</button>'
+      +'<button class="seesaw-item" data-i="1" style="right:4%;top:'+(wl?96:56)+'px">'+icSvg(q.iconR)+'</button>'
+      +seesawSVG(wl?-9:9)+'</div>';
+  }
+  if(q.type==='ordinal'){
+    const arrowL='<span class="queue-start"><svg viewBox="0 0 30 24"><path d="M2 12h20M16 5l8 7-8 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    const arrowR=arrowL.replace('<svg ','<svg style="transform:scaleX(-1)" ');
+    const items=q.queue.map(k=>'<svg class="ic queue-item" viewBox="0 0 100 100">'+IC[k]+'</svg>');
+    return '<div class="queue-row">'+(q.frm==='L'?arrowL:'')+items.join('')+(q.frm==='R'?arrowR:'')+'</div>';
+  }
+  if(q.type==='cmp3'){
+    return '<div class="cmp3-row">'+q.sizes.map((s,i)=>
+      '<button class="cmp3-card" data-i="'+i+'"><svg viewBox="0 0 100 100" style="width:'+(s*84)+'%">'+IC[q.icon]+'</svg></button>').join('')+'</div>';
+  }
+  if(q.type==='clock'){
+    return '<div class="clock-fig">'+clockSVG(q.h)+'</div>';
+  }
+  if(q.type==='money'){
+    return '<div class="money-row">'+q.bills.map((b,i)=>
+      '<button class="money-card" data-i="'+i+'">'+billSvg(b)+'</button>').join('')+'</div>';
+  }
+  if(q.type==='change'){
+    return '<div class="change-row">'
+      +'<span class="change-goods">'+icSvg(q.goods)+'<span class="price-tag">'+q.price+'元</span></span>'
+      +'<span class="change-arrow">→</span>'
+      +'<span class="change-pay">'+billSvg('m'+q.pay)+'</span></div>';
+  }
+  if(q.type==='zero'){
+    return '<div class="zero-fig">'+contSvg(q.cont)+'</div>';
+  }
+  if(q.type==='pattern'){
+    const tiles=q.seq.map(v=> v
+      ?'<span class="ptile">'+spSvg(v)+'</span>'
+      :'<span class="ptile q"></span>').join('');
+    const opts=q.optsShape.map((s,i)=>
+      '<button class="shape-btn" data-i="'+i+'" style="width:78px;height:78px" aria-label="图形选项">'+spSvg(s)+'</button>').join('');
+    return '<div class="pattern-row">'+tiles+'</div>'
+      +'<div class="shape-row" style="margin-top:16px">'+opts+'</div>';
+  }
+  if(q.type==='sort'){
+    return '<div class="sort-grid">'+q.cards.map((c,i)=>
+      '<button class="sort-card" data-i="'+i+'">'+icSvg(c)+'</button>').join('')+'</div>';
+  }
+  if(q.type==='group'){
+    let h='';
+    for(let g=0;g<q.groups;g++){
+      let inner=''; for(let i=0;i<q.per;i++) inner+=icWrap(q.icon,false);
+      h+='<span class="group-box">'+inner+'</span>';
+      if(g<q.groups-1) h+='<span class="group-plus">+</span>';
+    }
+    h+='<span class="group-plus">=</span><span class="expr-q">?</span>';
+    return '<div class="group-row">'+h+'</div>';
+  }
+  if(q.type==='parity'){
+    let h='';
+    const pairs=Math.floor(q.k/2), left=q.k%2;
+    for(let i=0;i<pairs;i++) h+='<span class="pair-ring">'+icWrap(q.icon,false)+icWrap(q.icon,false)+'</span>';
+    if(left) h+='<span class="pair-ring alone">'+icWrap(q.icon,false)+'</span>';
+    return '<div class="pairs-row">'+h+'</div>';
+  }
+  return '';
+}
+const PICK_TYPES = ['shape','cmp','cmp3','money','sort','pattern'];
+function renderQ(){
+  const q = qOf(); if(!q) return;
+  state.locked = false;
+  const stage = document.getElementById('stage');
+  if(q.type==='compare'){
+    const side=(n)=>{ let s=''; for(let i=0;i<n;i++) s+=icWrap(q.icon,false); return s; };
+    stage.innerHTML = '<div class="cmp-row">'
+      +'<button class="cmp-side" data-side="L">'+side(q.nL)+'</button>'
+      +'<span class="cmp-vs">比</span>'
+      +'<button class="cmp-side" data-side="R">'+side(q.nR)+'</button>'
+      +'</div><div class="feedback" id="feedback"></div>';
+    stage.querySelectorAll('[data-side]').forEach(b=>{
+      b.addEventListener('click', ()=>answerSide(b.dataset.side, b));
+    });
+  }else if(q.type==='bigger'){
+    stage.innerHTML = '<div class="bigger-row">'
+      +'<button class="big-num" data-v="'+q.a+'">'+q.a+'</button>'
+      +'<span class="cmp-vs">比</span>'
+      +'<button class="big-num" data-v="'+q.b+'">'+q.b+'</button>'
+      +'</div><div class="feedback" id="feedback"></div>';
+    stage.querySelectorAll('[data-v]').forEach(b=>{
+      b.addEventListener('click', ()=>answerBig(Number(b.dataset.v), b));
+    });
+  }else if(q.type==='pos'){
+    const ZONES = {
+      top:   'left:18%;right:18%;top:0;height:31%',
+      bottom:'left:18%;right:18%;bottom:0;height:31%',
+      left:  'left:0;top:22%;bottom:22%;width:24%',
+      right: 'right:0;top:22%;bottom:22%;width:24%'
+    };
+    const axis = (q.target==='top'||q.target==='bottom') ? ['top','bottom'] : ['left','right'];
+    stage.innerHTML = '<div class="pos-scene">'
+      +'<span class="pos-flyer">'+icWrap(q.item,false)+'</span>'
+      +'<span class="pos-anchor">'+(q.anchor==='tree'
+        ?'<svg viewBox="0 0 100 100">'+IC.tree+'</svg>'
+        :'<svg viewBox="0 0 100 100">'+IC.house+'</svg>')+'</span>'
+      +axis.map(z=>'<button class="pos-zone" data-zone="'+z+'" style="'+ZONES[z]+'" aria-label="方位"></button>').join('')
+      +'</div><div class="feedback" id="feedback"></div>';
+    stage.querySelectorAll('[data-zone]').forEach(b=>{
+      b.addEventListener('click', ()=>answerZone(b.dataset.zone, b));
+    });
+  }else if(PICK_TYPES.indexOf(q.type)>=0){
+    stage.innerHTML = figHTML(q) + '<div class="feedback" id="feedback"></div>';
+    stage.querySelectorAll('[data-i]').forEach(b=>{
+      b.addEventListener('click', ()=>answerPick(Number(b.dataset.i), b));
+    });
+  }else{
+    let opts='';
+    q.opts.forEach((v,i)=>{ opts += '<button class="num-btn" data-i="'+i+'">'+v+'</button>'; });
+    stage.innerHTML = figHTML(q) + '<div class="opts-num">'+opts+'</div>'
+      + '<div class="feedback" id="feedback"></div>';
+    stage.querySelectorAll('.num-btn').forEach(b=>{
+      b.addEventListener('click', ()=>answerNum(Number(b.dataset.i), b));
+    });
+  }
+}
+/* ---------------- 关卡印章 + 答对来接答案的小动物 ---------------- */
+const STAMP_KEY='kexin_math_stamps_v1';
+function getStamps(){ try{ const v=JSON.parse(localStorage.getItem(STAMP_KEY)||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
+function saveStamp(lv){
+  const a=getStamps();
+  if(a.indexOf(lv)<0){ a.push(lv); try{ localStorage.setItem(STAMP_KEY,JSON.stringify(a)); }catch(e){} return true; }
+  return false;
+}
+function renderStamps(){
+  const row=document.getElementById('stampRow'), tip=document.getElementById('stampTip');
+  if(!row) return;
+  const a=getStamps(), n=META.levels.length;
+  row.innerHTML=META.levels.map(lv=>'<i class="stamp-cell'+(a.indexOf(lv.key)>=0?' on':'')+'"></i>').join('');
+  if(tip) tip.textContent='已盖 '+a.length+' / '+n+' 个关卡印章'+(a.length>=n?' · 全部集齐啦！':'');
+}
+function petCheer(){
+  const keys=['rabbit','bear','duck','bird'];
+  const k=keys[Math.floor(Math.random()*keys.length)];
+  const d=document.createElement('div');
+  d.className='pet-cheer';
+  d.innerHTML='<svg viewBox="0 0 100 100">'+(IC[k]||'')+'</svg>';
+  document.body.appendChild(d);
+  setTimeout(()=>{ if(d.parentNode) d.remove(); },1450);
+}
+function giveStar(q){
+  const fresh = addStar(q.id);
+  if(window.KX_FUN) KX_FUN.hit(true);
+  refreshStars();
+  if(fresh){ petCheer();
+    const pop = document.getElementById('starPop');
+    pop.classList.remove('show'); void pop.offsetWidth; pop.classList.add('show');
+    setTimeout(()=>pop.classList.remove('show'), 1500);
+    if(window.partyBurst) window.partyBurst(18);
+    if(window.praiseOnce && Math.random()<.5) window.praiseOnce();
+  }
+  return fresh;
+}
+const CNUM = ['零','一','二','三','四','五','六','七','八','九','十',
+  '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'];
+function answerNum(i, btn){
+  if(state.locked) return;
+  const q = qOf();
+  const fb = document.getElementById('feedback');
+  if(i === q.ans){
+    state.locked = true;
+    btn.classList.add('good');
+    okSound();
+    if(q.type==='ordinal'){ playAudio('audio/d'+pad2(q.opts[q.ans])+'.mp3'); }
+    else{ numAudio(q.opts[q.ans]); }
+    fb.className='feedback ok';
+    fb.textContent = (q.type==='parity')
+      ? (q.opts[q.ans] ? '剩下一个没朋友，'+CNUM[q.k]+'是单数！'
+                       : '正好手拉手，'+CNUM[q.k]+'是双数！')
+      : '答对啦！';
+    giveStar(q);
+    nextTimer = setTimeout(nextQ, 2000);
+  }else{
+    btn.classList.add('wiggle');
+    setTimeout(()=>btn.classList.remove('wiggle'), 420);
+    noSound();
+    if(window.KX_FUN) KX_FUN.hit(false);
+    fb.className='feedback no'; fb.textContent='再想一想哦～';
+    playSay();
+  }
+}
+function answerSide(side, btn){
+  if(state.locked) return;
+  const q = qOf();
+  const fb = document.getElementById('feedback');
+  const right = (side==='L') ? (q.nL > q.nR) : (q.nR > q.nL);
+  if(right){
+    state.locked = true;
+    btn.classList.add('good');
+    okSound();
+    fb.className='feedback ok'; fb.textContent='答对啦！';
+    giveStar(q);
+    nextTimer = setTimeout(nextQ, 1600);
+  }else{
+    btn.classList.add('wiggle');
+    setTimeout(()=>btn.classList.remove('wiggle'), 420);
+    noSound();
+    if(window.KX_FUN) KX_FUN.hit(false);
+    fb.className='feedback no'; fb.textContent='再想一想哦～';
+    playSay();
+  }
+}
+function answerBig(v, btn){
+  if(state.locked) return;
+  const q = qOf();
+  const fb = document.getElementById('feedback');
+  if(v === Math.max(q.a, q.b)){
+    state.locked = true;
+    btn.classList.add('good');
+    okSound();
+    numAudio(v);
+    fb.className='feedback ok'; fb.textContent='答对啦！';
+    giveStar(q);
+    nextTimer = setTimeout(nextQ, 1600);
+  }else{
+    btn.classList.add('wiggle');
+    setTimeout(()=>btn.classList.remove('wiggle'), 420);
+    noSound();
+    if(window.KX_FUN) KX_FUN.hit(false);
+    fb.className='feedback no'; fb.textContent='再想一想哦～';
+    playSay();
+  }
+}
+const DIR_ORDER = ['top','bottom','left','right'];
+const SHAPE_ORDER = ['circle','tri','square','rect','star','heart'];
+function answerPick(i, btn){
+  if(state.locked) return;
+  const q = qOf();
+  const fb = document.getElementById('feedback');
+  /* cmp 题（比长短/高矮/轻重）数据里没有 ans，正确答案存在 big（'L'/'R'） */
+  const right = (q.ans !== undefined) ? (i === q.ans) : (i === (q.big === 'L' ? 0 : 1));
+  if(right){
+    state.locked = true;
+    btn.classList.add('good');
+    okSound();
+    if(q.type==='money'){ numAudio(q.val); }
+    else if(q.type==='shape'){ playAudio('audio/s'+pad2(SHAPE_ORDER.indexOf(q.optsShape[q.ans])+1)+'.mp3'); }
+    fb.className='feedback ok'; fb.textContent='答对啦！';
+    giveStar(q);
+    nextTimer = setTimeout(nextQ, 1700);
+  }else{
+    btn.classList.add('wiggle');
+    setTimeout(()=>btn.classList.remove('wiggle'), 420);
+    noSound();
+    if(window.KX_FUN) KX_FUN.hit(false);
+    fb.className='feedback no'; fb.textContent='再想一想哦～';
+    playSay();
+  }
+}
+function answerZone(zone, btn){
+  if(state.locked) return;
+  const q = qOf();
+  const fb = document.getElementById('feedback');
+  if(zone === q.target){
+    state.locked = true;
+    btn.classList.add('good');
+    btn.innerHTML = icWrap(q.item,false);
+    const flyer = document.querySelector('.pos-flyer');
+    if(flyer) flyer.remove();
+    okSound();
+    playAudio('audio/w'+pad2(DIR_ORDER.indexOf(zone)+1)+'.mp3');
+    fb.className='feedback ok'; fb.textContent='答对啦！';
+    giveStar(q);
+    nextTimer = setTimeout(nextQ, 1700);
+  }else{
+    btn.classList.add('wiggle');
+    setTimeout(()=>btn.classList.remove('wiggle'), 420);
+    noSound();
+    if(window.KX_FUN) KX_FUN.hit(false);
+    fb.className='feedback no'; fb.textContent='再想一想哦～';
+    playSay();
+  }
+}
+function finishLevel(){
+  clearAll();
+  document.getElementById('progFill').style.width = '100%';
+  const stars = getStars();
+  const got = state.qs.filter(q=>stars[q.id]).length;
+  document.getElementById('stage').innerHTML =
+    '<div class="done-box">'+CUP
+    +'<h3>完成啦！</h3>'
+    +'<p>这一关收到 <b>'+got+'</b> 颗小星星</p>'
+    +'<p>小耳朵真灵，数字朋友都记住你啦</p>'
+    +'<div class="done-actions">'
+    +'<button class="btn btn-primary" id="againBtn">再玩一次</button>'
+    +'<button class="btn btn-ghost" id="homeBtn">回到关卡</button>'
+    +'</div></div>';
+  document.getElementById('againBtn').addEventListener('click', ()=>openLevel(state.lv));
+  document.getElementById('homeBtn').addEventListener('click', goMap);
+  refreshStars();
+  if(window.partyBurst) window.partyBurst(36);
+  if(window.praiseOnce) window.praiseOnce();
+  if(saveStamp(state.lv)){
+    renderStamps();
+    if(window.KX_FUN) KX_FUN.tip('盖了一个关卡印章！');
+  }
+}
+function goMap(){
+  clearAll();
+  refreshStars();
+  renderMap();
+  show('map');
+}
+
+/* ---------------- 事件 ---------------- */
+document.getElementById('backBtn').addEventListener('click', goMap);
+document.getElementById('hearBtn').addEventListener('click', playSay);
+document.getElementById('voiceBtn').addEventListener('click', ()=>{
+  document.getElementById('voiceMask').classList.add('show');
+});
+document.getElementById('voiceClose').addEventListener('click', ()=>{
+  document.getElementById('voiceMask').classList.remove('show');
+  stopAudio();
+});
+document.getElementById('voiceMask').addEventListener('click', e=>{
+  if(e.target.id==='voiceMask'){
+    document.getElementById('voiceMask').classList.remove('show');
+    stopAudio();
+  }
+});
+document.getElementById('voiceTest').addEventListener('click', ()=>{
+  playAudio('audio/test.mp3');
+  document.getElementById('voiceStatus').textContent =
+    '正在播放…听到「你好」就说明声音正常；没听到就检查静音键和媒体音量。';
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Escape') return;
+  if(document.getElementById('voiceMask').classList.contains('show')){
+    document.getElementById('voiceMask').classList.remove('show');
+    return;
+  }
+  if(document.getElementById('playView').classList.contains('active')) goMap();
+});
+
+/* 测试钩子（线上无影响） */
+window.MATH_DEBUG = { openLevel, answerNum, answerSide, answerBig, answerPick, answerZone, state, goMap, figHTML, renderQ };
+
+refreshStars();
+renderMap();
+</script>
+<style>
+  /* 蹦蹦兔小助手 + 彩纸 */
+  #bunny{position:fixed;right:12px;bottom:14px;width:56px;z-index:60;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;user-select:none;animation:bunnyBob 2.8s ease-in-out infinite}
+  @keyframes bunnyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  #bunny.jump{animation:bunnyJump .5s ease}
+  @keyframes bunnyJump{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-16px) scale(1.1)}70%{transform:translateY(0) scale(.93)}100%{transform:translateY(0) scale(1)}}
+  #bunnySay{position:absolute;bottom:64px;right:0;min-width:120px;background:#FFFDF4;border:2px solid #E8A9C0;
+    border-radius:12px;padding:6px 10px;font-size:13px;color:#7A4A55;opacity:0;transform:translateY(6px);
+    transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 4px 0 rgba(200,90,74,.12);
+    text-align:center;white-space:nowrap}
+  #bunnySay.show{opacity:1;transform:translateY(0)}
+  .party-bit{position:fixed;top:-20px;z-index:70;pointer-events:none;width:9px;height:13px;border-radius:2px}
+  @keyframes partyFall{to{transform:translate(var(--drift),112vh) rotate(var(--spin));opacity:.8}}
+  body{padding-bottom:88px}
+</style>
+<div id="bunny" role="button" aria-label="蹦蹦兔">
+  <svg viewBox="0 0 54 58" width="56" height="60" aria-hidden="true">
+    <ellipse cx="19" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="35" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="19" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <ellipse cx="35" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <circle cx="27" cy="36" r="19" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <circle cx="16.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="37.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="20.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="33.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="27" cy="38.5" r="1.6" fill="#D96A8E"/>
+    <path d="M24.6 41.5 q2.4 2.6 4.8 0" stroke="#5A3A44" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div id="bunnySay"></div>
+</div>
+<script>
+(function(){
+  var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
+  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
+  var audio=null,timer=0;
+  var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
+  if(!box||!say) return;
+  /* 全屏彩纸（完成大事时用） */
+  window.partyBurst=function(n){
+    var colors=['#E8A9C0','#F0C24E','#A8CBA0','#9FC5D9','#D9A8E0','#F0A98C'];
+    n=n||32;
+    for(var i=0;i<n;i++){
+      var c=document.createElement('i');
+      c.className='party-bit';
+      c.style.left=(Math.random()*94+3)+'vw';
+      c.style.background=colors[i%colors.length];
+      c.style.animation='partyFall '+(2.2+Math.random()*1.6).toFixed(2)+'s '+(Math.random()*.5).toFixed(2)+'s linear forwards';
+      c.style.setProperty('--drift',((Math.random()*180-90)|0)+'px');
+      c.style.setProperty('--spin',((Math.random()*720-360)|0)+'deg');
+      document.body.appendChild(c);
+      (function(el){ setTimeout(function(){ el.remove(); },4800); })(c);
+    }
+  };
+  /* 随机表扬语音 */
+  window.praiseOnce=function(){
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  };
+  box.addEventListener('click',function(){
+    box.classList.remove('jump'); void box.offsetWidth; box.classList.add('jump');
+    say.textContent=SAYS[Math.floor(Math.random()*SAYS.length)];
+    say.classList.add('show');
+    clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
+      audio=new Audio(src);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  });
+})();
+</script>
+
+  <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>
+<script src="/tapread.js"></script>
+</body>
+</html>

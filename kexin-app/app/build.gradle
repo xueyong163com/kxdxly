@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystoreFile = file('../kexin.jks')
+def haveKeystore = keystoreFile.exists()
+
+android {
+    namespace 'com.kexin.lexin'
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.kexin.lexin"
+        minSdk 21
+        targetSdk 34
+        versionCode 3
+        versionName "1.2"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    signingConfigs {
+        release {
+            if (haveKeystore) {
+                storeFile keystoreFile
+                storePassword 'Kexin2026'
+                keyAlias 'kexin'
+                keyPassword 'Kexin2026'
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (haveKeystore) signingConfig signingConfigs.release
+        }
+    }
+}

@@ -1,0 +1,77 @@
+<style>
+  /* 蹦蹦兔小助手 + 彩纸 */
+  #bunny{position:fixed;right:12px;bottom:14px;width:56px;z-index:60;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;user-select:none;animation:bunnyBob 2.8s ease-in-out infinite}
+  @keyframes bunnyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  #bunny.jump{animation:bunnyJump .5s ease}
+  @keyframes bunnyJump{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-16px) scale(1.1)}70%{transform:translateY(0) scale(.93)}100%{transform:translateY(0) scale(1)}}
+  #bunnySay{position:absolute;bottom:64px;right:0;min-width:120px;background:#FFFDF4;border:2px solid #E8A9C0;
+    border-radius:12px;padding:6px 10px;font-size:13px;color:#7A4A55;opacity:0;transform:translateY(6px);
+    transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 4px 0 rgba(200,90,74,.12);
+    text-align:center;white-space:nowrap}
+  #bunnySay.show{opacity:1;transform:translateY(0)}
+  .party-bit{position:fixed;top:-20px;z-index:70;pointer-events:none;width:9px;height:13px;border-radius:2px}
+  @keyframes partyFall{to{transform:translate(var(--drift),112vh) rotate(var(--spin));opacity:.8}}
+  body{padding-bottom:88px}
+</style>
+<div id="bunny" role="button" aria-label="蹦蹦兔">
+  <svg viewBox="0 0 54 58" width="56" height="60" aria-hidden="true">
+    <ellipse cx="19" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="35" cy="14" rx="6.5" ry="13" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <ellipse cx="19" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <ellipse cx="35" cy="15" rx="2.8" ry="7.5" fill="#FADCE4"/>
+    <circle cx="27" cy="36" r="19" fill="#F5B8C8" stroke="#B2554A" stroke-width="2"/>
+    <circle cx="16.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="37.5" cy="41" r="3.6" fill="#F09CB4" opacity=".85"/>
+    <circle cx="20.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="33.5" cy="33" r="2.3" fill="#5A3A44"/>
+    <circle cx="27" cy="38.5" r="1.6" fill="#D96A8E"/>
+    <path d="M24.6 41.5 q2.4 2.6 4.8 0" stroke="#5A3A44" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </svg>
+  <div id="bunnySay"></div>
+</div>
+<script>
+(function(){
+  var SAYS=['你好呀！','今天真棒！','一起玩吧！','我最喜欢你啦！','再玩一次吧！','你是最厉害的！'];
+  var PRAISE=['/praise/p1.mp3','/praise/p2.mp3','/praise/p3.mp3','/praise/p4.mp3','/praise/p5.mp3'];
+  var audio=null,timer=0;
+  var box=document.getElementById('bunny'),say=document.getElementById('bunnySay');
+  if(!box||!say) return;
+  /* 全屏彩纸（完成大事时用） */
+  window.partyBurst=function(n){
+    var colors=['#E8A9C0','#F0C24E','#A8CBA0','#9FC5D9','#D9A8E0','#F0A98C'];
+    n=n||32;
+    for(var i=0;i<n;i++){
+      var c=document.createElement('i');
+      c.className='party-bit';
+      c.style.left=(Math.random()*94+3)+'vw';
+      c.style.background=colors[i%colors.length];
+      c.style.animation='partyFall '+(2.2+Math.random()*1.6).toFixed(2)+'s '+(Math.random()*.5).toFixed(2)+'s linear forwards';
+      c.style.setProperty('--drift',((Math.random()*180-90)|0)+'px');
+      c.style.setProperty('--spin',((Math.random()*720-360)|0)+'deg');
+      document.body.appendChild(c);
+      (function(el){ setTimeout(function(){ el.remove(); },4800); })(c);
+    }
+  };
+  /* 随机表扬语音 */
+  window.praiseOnce=function(){
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      audio=new Audio(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  };
+  box.addEventListener('click',function(){
+    box.classList.remove('jump'); void box.offsetWidth; box.classList.add('jump');
+    say.textContent=SAYS[Math.floor(Math.random()*SAYS.length)];
+    say.classList.add('show');
+    clearTimeout(timer); timer=setTimeout(function(){ say.classList.remove('show'); },2600);
+    try{
+      if(audio){ audio.pause(); audio=null; }
+      var src=Math.random()<.45?'/praise/hello.mp3':PRAISE[Math.floor(Math.random()*PRAISE.length)];
+      audio=new Audio(src);
+      var p=audio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  });
+})();
+</script>

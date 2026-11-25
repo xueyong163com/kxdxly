@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">可心的小乐园</string>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FBF6EA</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">#FBF6EA</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
+</resources>

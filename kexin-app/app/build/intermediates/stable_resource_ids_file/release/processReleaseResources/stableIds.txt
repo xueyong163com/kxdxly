@@ -1,0 +1,5 @@
+com.kexin.lexin:style/AppTheme = 0x7f040000
+com.kexin.lexin:mipmap/ic_launcher = 0x7f020000
+com.kexin.lexin:string/app_name = 0x7f030000
+com.kexin.lexin:drawable/splash = 0x7f010001
+com.kexin.lexin:drawable/ic_splash = 0x7f010000

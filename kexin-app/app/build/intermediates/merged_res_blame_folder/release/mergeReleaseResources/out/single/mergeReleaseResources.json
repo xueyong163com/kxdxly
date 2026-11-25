@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.kexin.lexin.app-release-4:/drawable_splash.xml.flat",
+        "source": "com.kexin.lexin.app-main-5:/drawable/splash.xml"
+    },
+    {
+        "merged": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-release-4:\\drawable_splash.xml.flat",
+        "source": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-main-5:\\drawable\\splash.xml"
+    },
+    {
+        "merged": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-release-4:\\drawable_ic_splash.png.flat",
+        "source": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-main-5:\\drawable\\ic_splash.png"
+    },
+    {
+        "merged": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-release-4:\\mipmap-hdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-main-5:\\mipmap-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-release-4:\\mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "C:\\Users\\xueyo\\.gradle\\daemon\\8.7\\com.kexin.lexin.app-main-5:\\mipmap-xxxhdpi\\ic_launcher.png"
+    }
+]

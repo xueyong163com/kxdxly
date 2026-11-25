@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FBF6EA">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>可心的小乐园</title>
+<style>
+  :root{
+    --paper:#FBF6EA; --card:#FFFDF6; --ink:#2F3B33; --soft:#6B7568;
+    --faint:#98A095; --line:#E7D9BC; --seal:#C85A4A;
+    --kai:"KaiTi","STKaiti","Kaiti SC",serif;
+    --hei:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--hei);
+       min-height:100vh;min-height:100dvh;user-select:none;-webkit-user-select:none;
+       background-image:radial-gradient(rgba(120,110,80,.055) 1px,transparent 1px);
+       background-size:16px 16px}
+  .wrap{max-width:760px;margin:0 auto;padding:30px 20px 34px;
+        padding-top:calc(30px + env(safe-area-inset-top));
+        padding-bottom:calc(34px + env(safe-area-inset-bottom))}
+
+  header{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .seal{width:56px;height:56px;flex:none;border:2.5px solid var(--seal);border-radius:15px;
+        color:var(--seal);font-family:var(--kai);font-size:34px;line-height:51px;text-align:center;
+        transform:rotate(-7deg);box-shadow:2px 3px 0 rgba(200,90,74,.18)}
+  h1{font-family:var(--kai);font-size:31px;letter-spacing:4px;margin:0;line-height:1.25}
+  .sub{margin:5px 0 0;font-size:13px;color:var(--soft);letter-spacing:1px}
+  .wave{display:block;width:100%;height:16px;margin:16px 0 22px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:600px){.grid{grid-template-columns:1fr 1fr;gap:22px}}
+
+  .card{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;
+        background:var(--card);border:2.5px solid var(--ink);border-radius:22px;
+        padding:16px 16px 16px 12px;position:relative;
+        box-shadow:5px 6px 0 rgba(47,59,51,.16);
+        transition:transform .14s ease,box-shadow .14s ease}
+  .card:nth-child(1){transform:rotate(-.9deg)}
+  .card:nth-child(2){transform:rotate(.8deg)}
+  .card:nth-child(3){transform:rotate(.7deg)}
+  .card:nth-child(4){transform:rotate(-.8deg)}
+  @media(min-width:600px){.card:nth-child(even){transform:translateY(14px) rotate(.8deg)}
+                          .card:nth-child(3){transform:rotate(.7deg)}}
+  .card:hover{transform:translateY(-3px) rotate(0deg);box-shadow:7px 9px 0 rgba(47,59,51,.18)}
+  .card:active{transform:translateY(3px) rotate(0deg);box-shadow:1px 2px 0 rgba(47,59,51,.16)}
+
+  .art{width:100px;height:92px;flex:none;display:grid;place-items:center;
+       border-radius:16px;overflow:hidden}
+  .art svg{width:96px;height:88px;display:block}
+  .txt{flex:1;min-width:0}
+  .name{font-family:var(--kai);font-size:25px;letter-spacing:2px;margin:0 0 4px;line-height:1.2}
+  .desc{margin:0 0 9px;font-size:12.5px;color:var(--soft);line-height:1.6}
+  .badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;
+         border:1.5px solid currentColor;letter-spacing:.5px}
+  .arrow{width:28px;height:28px;flex:none;align-self:flex-end;
+         border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+  .arrow svg{width:15px;height:15px;fill:none;stroke:var(--ink);stroke-width:2.6;
+             stroke-linecap:round;stroke-linejoin:round}
+
+  .c1 .art{background:#FCEDEC}.c1 .badge{color:#B2554A}
+  .c2 .art{background:#E6F2F6}.c2 .badge{color:#3E7F96}
+  .c3 .art{background:#FDEDE0}.c3 .badge{color:#B96A3E}
+  .c4 .art{background:#E8F3E9}.c4 .badge{color:#4C8560}
+  .c5 .art{background:#FDF0C8}.c5 .badge{color:#A3843C}
+  .c6 .art{background:#EFE9F6}.c6 .badge{color:#7A5FA8}
+  .c7 .art{background:#FBE6F0}.c7 .badge{color:#B0507E}
+
+  /* 星星宝盒 */
+  .treasure{margin-top:26px;background:var(--card);border:2.5px solid var(--ink);border-radius:22px;
+    box-shadow:5px 6px 0 rgba(47,59,51,.16);padding:16px 16px 13px}
+  .t-head{display:flex;align-items:center;gap:12px}
+  .t-seal{width:44px;height:44px;flex:none;border:2.5px solid #C9992A;border-radius:12px;color:#C9992A;
+    font-family:var(--kai);font-size:25px;line-height:40px;text-align:center;transform:rotate(-6deg);
+    box-shadow:1px 2px 0 rgba(201,153,42,.2)}
+  .t-head h2{font-family:var(--kai);font-size:21px;margin:0;letter-spacing:2px}
+  .t-head p{margin:2px 0 0;font-size:12px;color:var(--faint)}
+  .t-total{margin-left:auto;text-align:center;background:#FFF6E4;border:2px solid #E0B84F;
+    border-radius:14px;padding:5px 12px;flex:none}
+  .t-total b{display:block;font-size:22px;color:#C9992A;line-height:1.1}
+  .t-total span{font-size:10px;color:#B08736}
+  .t-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .t-chip{font-size:11px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--line);
+    color:var(--soft);background:#FFFDF6}
+  .t-chip b{color:var(--ink)}
+  .t-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+  .t-cell{background:#FFFDF6;border:2px solid var(--line);border-radius:14px;padding:7px 2px 5px;
+    text-align:center;cursor:pointer;position:relative}
+  .t-cell svg.face{width:46px;height:46px;display:block;margin:0 auto}
+  .t-cell .nm{font-size:10px;color:var(--soft);margin-top:2px}
+  .t-cell.lock{opacity:.45;filter:grayscale(1)}
+  .t-cell.lock .nm{color:var(--faint)}
+  .t-cell.bounce{animation:tBounce .5s}
+  @keyframes tBounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-9px) scale(1.08)}70%{transform:translateY(0) scale(.95)}}
+  .t-cell.wiggle{animation:tShake .4s}
+  @keyframes tShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+  .t-lockmark{position:absolute;top:4px;right:5px;width:13px;height:13px}
+  .t-msg{font-size:12px;color:#8A7A55;min-height:17px;margin:9px 0 0;text-align:center}
+
+  /* 今日小知识 */
+  .daily{margin-top:18px;background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:14px 16px}
+  .d-head{display:flex;align-items:center;gap:8px;font-family:var(--kai);font-size:17px;letter-spacing:1px}
+  .d-head svg{width:20px;height:20px;flex:none}
+  #dText{margin:8px 0 0;font-size:14px;line-height:1.85;color:var(--ink)}
+  #dPlay{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;
+    border-radius:20px;background:#EAF3EA;color:#4C7A58;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  #dPlay:active{transform:scale(.96)}
+
+  .note{margin-top:28px;background:rgba(255,253,246,.8);border:1.5px dashed var(--line);
+        border-radius:16px;padding:14px 16px;font-size:12px;color:var(--soft);line-height:1.9}
+  .note b{color:var(--ink);font-weight:600}
+  /* 离线下载卡片 */
+  .dl-card{margin-top:18px;background:var(--card);border:2.5px solid var(--ink);border-radius:22px;
+    box-shadow:5px 6px 0 rgba(47,59,51,.16);padding:16px}
+  .dl-head{display:flex;align-items:center;gap:12px}
+  .dl-seal{width:44px;height:44px;flex:none;border:2.5px solid #3E7F96;border-radius:12px;color:#3E7F96;
+    font-family:var(--kai);font-size:25px;line-height:40px;text-align:center;transform:rotate(-6deg)}
+  .dl-head h2{font-family:var(--kai);font-size:19px;margin:0;letter-spacing:1px}
+  .dl-head p{margin:3px 0 0;font-size:12px;color:var(--soft)}
+  .dl-status{margin:12px 0 8px;font-size:13px;color:var(--ink);line-height:1.5}
+  .dl-bar{height:12px;border:2px solid var(--line);border-radius:10px;background:#F4EEDC;overflow:hidden}
+  .dl-fill{height:100%;width:0;background:#7FB3D9;transition:width .25s ease}
+  .dl-actions{display:flex;gap:10px;margin-top:12px}
+  .dl-actions button{flex:1;min-height:42px;border:none;border-radius:12px;font-family:inherit;font-size:14px;
+    font-weight:700;cursor:pointer;background:#3E7F96;color:#FFFDF6;box-shadow:0 3px 0 rgba(62,127,150,.3)}
+  .dl-actions button:active{transform:translateY(2px);box-shadow:none}
+  .dl-actions button.ghost{background:var(--card);color:var(--soft);border:2px solid var(--line);box-shadow:none}
+  .dl-actions button:disabled{opacity:.5;cursor:default}
+  .dl-tip{margin:10px 0 0;font-size:11px;color:var(--faint);line-height:1.6}
+  footer{margin-top:18px;text-align:center;font-size:11px;color:var(--faint);letter-spacing:.5px}
+  .parent-btn{margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    height:36px;padding:0 10px;border:2px solid var(--line);border-radius:12px;
+    background:var(--card);color:var(--soft);font-size:12.5px;font-weight:600;
+    font-family:inherit;cursor:pointer;box-shadow:0 2px 0 rgba(47,59,51,.08)}
+  .parent-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .parent-btn:active{transform:translateY(2px);box-shadow:none}
+  @media(max-width:350px){.parent-btn span{display:none}.parent-btn{padding:0 9px}}
+  @media(max-width:400px){
+    .wrap{padding-left:14px;padding-right:14px}
+    .seal{width:48px;height:48px;line-height:43px;font-size:29px}
+    h1{font-size:26px}.art{width:84px;height:82px}.art svg{width:82px;height:78px}
+    .name{font-size:22px}.card{padding:13px 12px 13px 9px;gap:8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="seal">可</div>
+    <div>
+      <h1>可心的小乐园</h1>
+      <p class="sub">选一个，点进去玩</p>
+    </div>
+    <button class="parent-btn" id="parentBtn" type="button" title="家长设置">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      <span>家长设置</span>
+    </button>
+  </header>
+  <svg class="wave" viewBox="0 0 600 16" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 8q15-7 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0"
+          fill="none" stroke="#E7D9BC" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>
+
+  <div class="grid">
+    <a class="card c1" href="poems/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <path d="M86 11a17 17 0 1 0 15 25 19 19 0 0 1-15-25z" fill="#F2C14E" stroke="#2F3B33" stroke-width="2.2" stroke-linejoin="round"/>
+          <rect x="16" y="31" width="68" height="51" rx="5" fill="#FFFDF6" stroke="#2F3B33" stroke-width="2.3"/>
+          <path d="M16 41h68M16 72h68" stroke="#2F3B33" stroke-width="2"/>
+          <rect x="11" y="28" width="9" height="57" rx="4" fill="#E9A6A0" stroke="#2F3B33" stroke-width="2.1"/>
+          <rect x="80" y="28" width="9" height="57" rx="4" fill="#E9A6A0" stroke="#2F3B33" stroke-width="2.1"/>
+          <path d="M28 51h30M28 59h22M28 67h27" stroke="#98A095" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心学诗词</h2>
+        <p class="desc">点一句，念一句 · 也能整首听</p>
+        <span class="badge">300 首古诗 · 全带精讲</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c2" href="english/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <rect x="15" y="19" width="80" height="59" rx="9" fill="#E6F2F6" stroke="#2F3B33" stroke-width="2.3"/>
+          <path d="M42 65L54 32l12 33M46 55h16" fill="none" stroke="#3E7F96" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="87" cy="17" r="10" fill="#EFA46A" stroke="#2F3B33" stroke-width="2.1"/>
+          <path d="M83 17h8M87 13v8" stroke="#FFFDF6" stroke-width="2" stroke-linecap="round"/>
+          <path d="M24 85h64" stroke="#2F3B33" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="30" cy="30" r="2.4" fill="#8FB573"/><circle cx="80" cy="69" r="2.4" fill="#E9A6A0"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心学英语</h2>
+        <p class="desc">泡泡翻牌猜声音 · 主题闯关</p>
+        <span class="badge">5 个游戏 · 16 位动物朋友</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c3" href="quiz/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <path d="M55 13a24 24 0 0 0-14 43v8h28v-8a24 24 0 0 0-14-43z" fill="#FDEDE0" stroke="#2F3B33" stroke-width="2.3" stroke-linejoin="round"/>
+          <rect x="42" y="64" width="26" height="9" rx="3" fill="#D07A4C" stroke="#2F3B33" stroke-width="2.1"/>
+          <path d="M46 80h18M49 87h12" stroke="#2F3B33" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M20 22l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M89 40l2.4 5 5 2.4-5 2.4-2.4 5-2.4-5-5-2.4 5-2.4z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M55 24v18" stroke="#E8915B" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心学知识</h2>
+        <p class="desc">听题目，闯关答题得小星星</p>
+        <span class="badge">500 道小题 · 25 关</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c4" href="racing/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <path d="M17 76V17" stroke="#2F3B33" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M18 18h23l-5 7 5 7H18z" fill="#C4543F" stroke="#2F3B33" stroke-width="2" stroke-linejoin="round"/>
+          <rect x="28" y="46" width="62" height="26" rx="10" fill="#D96A52" stroke="#2F3B33" stroke-width="2.3"/>
+          <path d="M43 46v-9a4 4 0 0 1 4-4h17a4 4 0 0 1 4 4v9" fill="#CFE7EF" stroke="#2F3B33" stroke-width="2.1"/>
+          <circle cx="43" cy="73" r="8" fill="#4A4A42" stroke="#2F3B33" stroke-width="2.1"/>
+          <circle cx="76" cy="73" r="8" fill="#4A4A42" stroke="#2F3B33" stroke-width="2.1"/>
+          <circle cx="85" cy="56" r="3" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.4"/>
+          <path d="M90 30l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心开赛车</h2>
+        <p class="desc">捡金币开火箭 · 点喇叭有惊喜</p>
+        <span class="badge">20 关 · 金币小店 · 磁铁</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c5" href="nursery/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <rect x="20" y="51" width="24" height="9" rx="4.5" fill="#E9A6A0" stroke="#2F3B33" stroke-width="2.1"/>
+          <path d="M42 44l18-11v45l-18-11z" fill="#F2C14E" stroke="#2F3B33" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M60 33c8 6 8 39 0 45" fill="none" stroke="#2F3B33" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M82 24v24" stroke="#2F3B33" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="78" cy="49" rx="7" ry="5.2" fill="#86B49A" stroke="#2F3B33" stroke-width="2"/>
+          <path d="M82 24q9 4 7 13" fill="none" stroke="#2F3B33" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M97 38v17" stroke="#2F3B33" stroke-width="2.6" stroke-linecap="round"/>
+          <ellipse cx="94" cy="56" rx="5.6" ry="4.2" fill="#8FB6D9" stroke="#2F3B33" stroke-width="1.9"/>
+          <path d="M88 16l2 4.4 4.8.6-3.6 3.2 1 4.8-4.2-2.4-4.2 2.4 1-4.8-3.6-3.2 4.8-.6z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="26" cy="28" r="2.6" fill="#E9A6A0"/><circle cx="38" cy="20" r="1.8" fill="#98A095"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心学儿歌</h2>
+        <p class="desc">拍拍手一起念 · 听完点亮小星星</p>
+        <span class="badge">51 首童谣 · 小乐队伴奏</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c6" href="math/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <rect x="15" y="20" width="80" height="54" rx="9" fill="#4E7A6A" stroke="#2F3B33" stroke-width="2.3"/>
+          <circle cx="34" cy="41" r="5" fill="#FFFDF6"/>
+          <circle cx="48" cy="41" r="5" fill="#FFFDF6"/>
+          <path d="M60 41h13M66.5 34.5v13" stroke="#FFFDF6" stroke-width="3.4" stroke-linecap="round"/>
+          <circle cx="82" cy="41" r="5" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.6"/>
+          <path d="M24 63h62" stroke="#F2C14E" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/>
+          <rect x="22" y="74" width="66" height="7" rx="3.5" fill="#D9A66C" stroke="#2F3B33" stroke-width="1.8"/>
+          <path d="M94 12l2.4 5 5 2.4-5 2.4-2.4 5-2.4-5-5-2.4 5-2.4z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心学数学</h2>
+        <p class="desc">加减图形钟表钱币 · 边玩边学</p>
+        <span class="badge">33 关 330 题 · 样样都学</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <a class="card c7" href="story/">
+      <div class="art">
+        <svg viewBox="0 0 110 96" aria-hidden="true">
+          <path d="M55 22C44 12 24 12 12 18v50c12-6 32-6 43 5z" fill="#FBE6F0" stroke="#2F3B33" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M55 22C66 12 86 12 98 18v50c-12-6-32-6-43 5z" fill="#FFFDF6" stroke="#2F3B33" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M55 22v50" stroke="#2F3B33" stroke-width="2.4"/>
+          <path d="M22 32h22M22 42h22M22 52h18M66 32h22M66 42h22M66 52h17" stroke="#C76B9E" stroke-width="2" stroke-linecap="round"/>
+          <path d="M86 30l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="#F2C14E" stroke="#2F3B33" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="txt">
+        <h2 class="name">可心听故事</h2>
+        <p class="desc">点一点，故事讲给你听</p>
+        <span class="badge">8 个故事 · 听完得星星</span>
+      </div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    </a>
+  </div>
+
+  <section class="treasure">
+    <div class="t-head">
+      <span class="t-seal">星</span>
+      <div>
+        <h2>可心的星星宝盒</h2>
+        <p>七个地方攒的星星都在这里，攒够了小动物就来陪你</p>
+      </div>
+      <div class="t-total"><b id="tTotal">0</b><span>颗星星</span></div>
+    </div>
+    <div class="t-chips" id="tChips"></div>
+    <div class="t-grid" id="tGrid"></div>
+    <p class="t-msg" id="tMsg"></p>
+  </section>
+
+  <section class="daily">
+    <div class="d-head">
+      <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="#4C7A58"/><path d="M16 8a4.5 4.5 0 010 8M18.5 5.5a8 8 0 010 13" stroke="#4C7A58" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      今天的小知识
+    </div>
+    <p id="dText"></p>
+    <button id="dPlay">
+      <svg width="15" height="15" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/></svg>
+      听一听
+    </button>
+  </section>
+
+  <div class="note">
+    <b>给家长：</b>上面七个都在这个地址下面，<b>以后只记这一个网址</b>就行，点卡片进去，按手机的返回键就能回到这里。学习页用的是提前录好的音频，赛车页是即时音效，微信里直接打开也能听；七个页面都不需要登录。为了家长能跨设备管理和限时，页面会记录<b>每个模块玩了多久</b>（只有时长，不记内容、不记姓名），时间数据存在这个网址自己的云端空间里。想看看每天玩了多久、给赛车定个时间，点<b>页面右上角的「家长设置」</b>输入密码就能进家长控制台。
+  </div>
+
+  <section class="dl-card" id="dlCard">
+    <div class="dl-head">
+      <span class="dl-seal">载</span>
+      <div>
+        <h2>离线下载 · 一次下好全部内容</h2>
+        <p>把 7 个模块的音频都存到手机，之后没网也能玩</p>
+      </div>
+    </div>
+    <div class="dl-status" id="dlStatus">还没下载。全部约 163 MB，建议连 Wi-Fi 时下载。</div>
+    <div class="dl-bar"><div class="dl-fill" id="dlFill"></div></div>
+    <div class="dl-actions">
+      <button id="dlBtn" type="button">一键下载全部</button>
+      <button id="dlStop" type="button" class="ghost" style="display:none">暂停</button>
+    </div>
+    <p class="dl-tip" id="dlTip">下载会占手机约 163 MB 空间，过程中别关掉页面。已下载的内容不会因为App更新而丢失。以后内容有变化，点「检查更新」只会重新下载改过的那几个，不会全部重来。</p>
+  </section>
+  <footer>可心的小乐园 · 七个小地方，一个入口</footer>
+</div>
+
+<script>
+/* 星星宝盒：读取七个模块的进度，算总星数，解锁小动物贴纸 */
+(function(){
+  function jget(k,d){ try{ var v=JSON.parse(localStorage.getItem(k)); return v==null?d:v; }catch(e){ return d; } }
+  function countOf(k){ var v=jget(k,{}),n=0; for(var x in v){ if(v.hasOwnProperty(x)) n++; } return n; }
+  function sumOf(k){ var v=jget(k,{}),n=0; for(var x in v){ var t=Number(v[x]); if(!isNaN(t)) n+=t; } return n; }
+  function lenOf(k){ var v=jget(k,[]); return (v&&v.length)||0; }
+  var rp=jget('kexin_racing_progress_v2',{});
+  var racing=(rp&&rp.best)?Object.keys(rp.best).length:0;
+  var parts=[
+    {n:'诗词',v:countOf('xiaoerduo_stars_v2')+lenOf('kexin_poem_game_chars_v1')},
+    {n:'英语',v:countOf('kexin_english_stars_v1')+lenOf('kexin_eng_game_words_v1')},
+    {n:'儿歌',v:countOf('kexin_nursery_stars_v1')},
+    {n:'知识',v:sumOf('kexin_quiz_stars_v3')},
+    {n:'赛车',v:racing},
+    {n:'数学',v:countOf('kexin_math_stars_v1')},
+    {n:'故事',v:countOf('kexin_story_stars_v1')}
+  ];
+  var total=parts.reduce(function(s,p){ return s+p.v; },0);
+  document.getElementById('tTotal').textContent=total;
+  document.getElementById('tChips').innerHTML=parts.map(function(p){
+    return '<span class="t-chip">'+p.n+' <b>'+p.v+'</b></span>';
+  }).join('');
+
+  var SV={
+    rabbit:'<ellipse cx="40" cy="28" rx="7.5" ry="17" fill="#fff" stroke="#8A8272" stroke-width="2.5"/><ellipse cx="60" cy="28" rx="7.5" ry="17" fill="#fff" stroke="#8A8272" stroke-width="2.5"/><ellipse cx="40" cy="29" rx="3.6" ry="11" fill="#F7D3E1"/><ellipse cx="60" cy="29" rx="3.6" ry="11" fill="#F7D3E1"/><circle cx="50" cy="60" r="22" fill="#fff" stroke="#8A8272" stroke-width="2.5"/><circle cx="43" cy="57" r="2.8" fill="#4A4238"/><circle cx="57" cy="57" r="2.8" fill="#4A4238"/><ellipse cx="50" cy="64" rx="2.6" ry="2" fill="#E07B6A"/><path d="M45 70q5 4 10 0" stroke="#8A8272" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    duck:'<circle cx="38" cy="38" r="13" fill="#F7D354" stroke="#B8912E" stroke-width="2.5"/><path d="M26 38l-12 3 12 5z" fill="#E8933A" stroke="#B8862E" stroke-width="1.8" stroke-linejoin="round"/><circle cx="35" cy="35" r="2.6" fill="#4A4238"/><ellipse cx="52" cy="62" rx="26" ry="20" fill="#F7D354" stroke="#B8912E" stroke-width="2.5"/><path d="M36 66q10-10 26-5" fill="none" stroke="#B8912E" stroke-width="2.2" stroke-linecap="round"/>',
+    cat:'<path d="M34 42L29 20l17 11z" fill="#F2B279" stroke="#8A5A2B" stroke-width="2.5" stroke-linejoin="round"/><path d="M66 42l5-22-17 11z" fill="#F2B279" stroke="#8A5A2B" stroke-width="2.5" stroke-linejoin="round"/><circle cx="50" cy="58" r="24" fill="#F2B279" stroke="#8A5A2B" stroke-width="2.5"/><circle cx="42" cy="55" r="3" fill="#4A4238"/><circle cx="58" cy="55" r="3" fill="#4A4238"/><path d="M45 66q5 5 10 0" stroke="#8A5A2B" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M22 56h13M65 56h13" stroke="#B98A4F" stroke-width="1.8" stroke-linecap="round"/>',
+    fish:'<path d="M62 44l14-10-2 16 2 16-14-10z" fill="#5E93BC" stroke="#3E6E8E" stroke-width="2.2" stroke-linejoin="round"/><path d="M22 55q16-20 38-12t4 24q-24 8-42-12z" fill="#7FB3D9" stroke="#3E6E8E" stroke-width="2.5"/><circle cx="36" cy="52" r="3.2" fill="#4A4238"/><path d="M40 42q6 4 2 9" fill="none" stroke="#3E6E8E" stroke-width="1.8"/>',
+    pig:'<path d="M31 40l-4-13 12 6zM69 40l4-13-12 6z" fill="#F5B8C4" stroke="#B26B7C" stroke-width="2.2" stroke-linejoin="round"/><circle cx="50" cy="57" r="25" fill="#F5B8C4" stroke="#B26B7C" stroke-width="2.5"/><circle cx="40" cy="52" r="2.8" fill="#4A4238"/><circle cx="60" cy="52" r="2.8" fill="#4A4238"/><ellipse cx="50" cy="64" rx="10" ry="7.5" fill="#EE9AAB" stroke="#B26B7C" stroke-width="2"/><circle cx="46.5" cy="64" r="1.7" fill="#B26B7C"/><circle cx="53.5" cy="64" r="1.7" fill="#B26B7C"/>',
+    dog:'<path d="M27 48q-7 12 3 18" fill="none" stroke="#8A5A2B" stroke-width="9" stroke-linecap="round"/><path d="M73 48q7 12-3 18" fill="none" stroke="#8A5A2B" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="56" r="25" fill="#D9A66C" stroke="#8A5A2B" stroke-width="2.5"/><circle cx="41" cy="52" r="3" fill="#4A4238"/><circle cx="59" cy="52" r="3" fill="#4A4238"/><ellipse cx="50" cy="63" rx="6" ry="4.6" fill="#4A4238"/><path d="M46 70q4 5 8 0v6q-4 4-8 0z" fill="#E07B6A" stroke="#8A5A2B" stroke-width="1.6"/>',
+    bear:'<circle cx="30" cy="27" r="11" fill="#C89858" stroke="#8A5A2B" stroke-width="2.5"/><circle cx="70" cy="27" r="11" fill="#C89858" stroke="#8A5A2B" stroke-width="2.5"/><circle cx="30" cy="27" r="5" fill="#E8C89A"/><circle cx="70" cy="27" r="5" fill="#E8C89A"/><circle cx="50" cy="57" r="27" fill="#C89858" stroke="#8A5A2B" stroke-width="2.5"/><ellipse cx="50" cy="65" rx="12" ry="9" fill="#E8C89A"/><circle cx="41" cy="51" r="3" fill="#4A4238"/><circle cx="59" cy="51" r="3" fill="#4A4238"/><ellipse cx="50" cy="61" rx="4" ry="3" fill="#4A4238"/><path d="M50 64v4M46 70q4 3 8 0" stroke="#4A4238" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    frog:'<circle cx="35" cy="33" r="13" fill="#8FBC6E" stroke="#5A8342" stroke-width="2.5"/><circle cx="65" cy="33" r="13" fill="#8FBC6E" stroke="#5A8342" stroke-width="2.5"/><circle cx="35" cy="33" r="5.5" fill="#fff"/><circle cx="65" cy="33" r="5.5" fill="#fff"/><circle cx="35" cy="34" r="2.6" fill="#4A4238"/><circle cx="65" cy="34" r="2.6" fill="#4A4238"/><ellipse cx="50" cy="60" rx="26" ry="19" fill="#8FBC6E" stroke="#5A8342" stroke-width="2.5"/><path d="M36 64q14 10 28 0" stroke="#5A8342" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
+    fox:'<path d="M28 22L22 10l14 8zM72 22l6-12-14 8z" fill="#E8824A" stroke="#A85428" stroke-width="2.5" stroke-linejoin="round"/><path d="M50 84q-26-6-26-32 0-24 26-24t26 24q0 26-26 32z" fill="#E8824A" stroke="#A85428" stroke-width="2.5"/><path d="M50 78q-14-4-14-22 0-12 14-12t14 12q0 18-14 22z" fill="#FFF3E0"/><circle cx="41" cy="48" r="2.8" fill="#4A4238"/><circle cx="59" cy="48" r="2.8" fill="#4A4238"/><ellipse cx="50" cy="58" rx="3" ry="2.2" fill="#4A4238"/><path d="M46 62l4 3 4-3" fill="none" stroke="#4A4238" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+    monkey:'<circle cx="30" cy="30" r="12" fill="#A8805A" stroke="#6E4E30" stroke-width="2.5"/><circle cx="70" cy="30" r="12" fill="#A8805A" stroke="#6E4E30" stroke-width="2.5"/><circle cx="30" cy="30" r="5.5" fill="#E0C4A0"/><circle cx="70" cy="30" r="5.5" fill="#E0C4A0"/><circle cx="50" cy="56" r="26" fill="#A8805A" stroke="#6E4E30" stroke-width="2.5"/><ellipse cx="50" cy="62" rx="15" ry="12" fill="#E8D2B4"/><circle cx="43" cy="55" r="2.8" fill="#4A4238"/><circle cx="57" cy="55" r="2.8" fill="#4A4238"/><circle cx="50" cy="62" r="2" fill="#8A5A2B"/><path d="M45 68q5 4 10 0" stroke="#4A4238" stroke-width="2.2" fill="none" stroke-linecap="round"/>',
+    owl:'<path d="M23 30l8-10 8 10M69 30l-8-10-8 10" fill="#B08A5E" stroke="#7A5A34" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="50" cy="56" rx="27" ry="28" fill="#B08A5E" stroke="#7A5A34" stroke-width="2.5"/><circle cx="39" cy="48" r="10" fill="#FFF6E4" stroke="#7A5A34" stroke-width="2"/><circle cx="61" cy="48" r="10" fill="#FFF6E4" stroke="#7A5A34" stroke-width="2"/><circle cx="39" cy="48" r="3.4" fill="#4A4238"/><circle cx="61" cy="48" r="3.4" fill="#4A4238"/><path d="M50 54l-5 8h10z" fill="#E8A23C" stroke="#B8781E" stroke-width="1.8" stroke-linejoin="round"/><path d="M34 74q16 8 32 0" stroke="#7A5A34" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    deer:'<path d="M30 22q-6-10-14-10M30 22q2-8-2-12M70 22q6-10 14-10M70 22q-2-8 2-12" fill="none" stroke="#8A6A3E" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="56" r="26" fill="#D9AE76" stroke="#9E7A46" stroke-width="2.5"/><ellipse cx="50" cy="66" rx="13" ry="10" fill="#F2DDBB"/><circle cx="42" cy="50" r="2.8" fill="#4A4238"/><circle cx="58" cy="50" r="2.8" fill="#4A4238"/><ellipse cx="50" cy="60" rx="3.4" ry="2.6" fill="#4A4238"/><circle cx="30" cy="62" r="3.4" fill="#F2DDBB"/><circle cx="70" cy="62" r="3.4" fill="#F2DDBB"/>'
+  };
+  var STICKERS=[
+    {n:'小兔子',need:8,svg:SV.rabbit},{n:'小黄鸭',need:20,svg:SV.duck},
+    {n:'小花猫',need:40,svg:SV.cat},{n:'小鱼儿',need:70,svg:SV.fish},
+    {n:'小猪猪',need:110,svg:SV.pig},{n:'小黄狗',need:160,svg:SV.dog},
+    {n:'小棕熊',need:220,svg:SV.bear},{n:'小青蛙',need:290,svg:SV.frog},
+    {n:'小狐狸',need:370,svg:SV.fox},{n:'小猴子',need:460,svg:SV.monkey},
+    {n:'猫头鹰',need:560,svg:SV.owl},{n:'小梅花鹿',need:680,svg:SV.deer}
+  ];
+  var grid=document.getElementById('tGrid'), msg=document.getElementById('tMsg'), ac=null;
+  function pop(f){
+    try{
+      var C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+      if(!ac) ac=new C();
+      if(ac.state==='suspended'&&ac.resume) ac.resume();
+      var o=ac.createOscillator(), g=ac.createGain(), t0=ac.currentTime;
+      o.type='sine'; o.frequency.value=f||620;
+      g.gain.setValueAtTime(.07,t0);
+      g.gain.exponentialRampToValueAtTime(.0001,t0+.22);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t0); o.stop(t0+.22);
+    }catch(e){}
+  }
+  var LOCK='<svg class="t-lockmark" viewBox="0 0 24 24" fill="none" stroke="#98A095" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>';
+  STICKERS.forEach(function(st){
+    var cell=document.createElement('div');
+    var on=total>=st.need;
+    cell.className='t-cell'+(on?'':' lock');
+    cell.innerHTML='<svg class="face" viewBox="0 0 100 100">'+st.svg+'</svg><div class="nm">'+st.n+'</div>'+(on?'':LOCK);
+    cell.onclick=function(){
+      if(on){
+        cell.classList.remove('bounce'); void cell.offsetWidth; cell.classList.add('bounce');
+        pop(660); pop(880);
+        msg.textContent='这是'+st.n+'，它来陪可心学习啦！';
+      }else{
+        cell.classList.remove('wiggle'); void cell.offsetWidth; cell.classList.add('wiggle');
+        msg.textContent='再攒 '+(st.need-total)+' 颗星星，'+st.n+'就来啦！';
+      }
+    };
+    grid.appendChild(cell);
+  });
+
+  /* 今日小知识：按日期轮换，播赛车页预录的知识语音 */
+  var KNOWS=[
+    '红灯停，绿灯行，黄灯亮了等一等。',
+    '开车要系好安全带，就像被妈妈抱住一样安全。',
+    '车轮是圆形的，圆形的东西才滚得又快又稳。',
+    '下雨天路滑滑的，开车要慢慢开才安全。',
+    '按喇叭发出嘀嘀声，是在提醒别人：我来啦，请注意。',
+    '汽车要加油，就像我们要吃饭，吃饱了才有力气跑。',
+    '夜里开车要打开车灯，才能看清前面的路。',
+    '斑马线是给行人走的，开车的人要让小朋友先过马路。',
+    '星星在晚上出现，太阳出来了，它们就躲起来啦。',
+    '雪花是白白的小冰晶，落在手上暖一暖，就化成小水滴啦。',
+    '秋天的叶子会变黄，风一吹，就从树上飘下来了。',
+    '蝴蝶小时候是毛毛虫，长大以后才变得这么漂亮。',
+    '月亮有时候圆圆的像盘子，有时候弯弯的像小船。',
+    '冰淇淋是凉凉的，吃太多小肚子会不舒服哦。',
+    '收到礼物要说谢谢，双手接礼物更有礼貌。',
+    '红绿灯就像马路上的小指挥，指挥大家安全通行。',
+    '消防车是红色的，救护车是白色的，它们一响，大家都要让路。',
+    '汽车开得越快越危险，好司机都会控制车速。',
+    '雨过天晴会出现彩虹，有红橙黄绿青蓝紫七种颜色。',
+    '大人喝了酒不能开车，小朋友要提醒爸爸妈妈哦。'
+  ];
+  var d=new Date();
+  var kIdx=(d.getFullYear()*372+d.getMonth()*31+d.getDate())%KNOWS.length;
+  document.getElementById('dText').textContent=KNOWS[kIdx];
+  var dAudio=null;
+  document.getElementById('dPlay').onclick=function(){
+    try{
+      if(dAudio){ dAudio.pause(); dAudio=null; }
+      dAudio=new Audio('racing/audio/k'+('0'+(kIdx+1)).slice(-2)+'.mp3');
+      var p=dAudio.play(); if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  };
+})();
+</script>
+<script src="cloud.js"></script>
+<script src="fun.js"></script>
+<script src="admin-panel.js"></script>
+  <script>if("serviceWorker" in navigator && !/KexinApp/i.test(navigator.userAgent)){window.addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>
+<script>
+/* ---------------- 一键离线下载：把全部音频缓存到手机 ----------------
+   缓存池固定名 kexin-audio-v1，与 sw.js 的 AUDIO 一致。
+   每个音频带内容指纹(MD5)：已缓存且指纹一致→跳过；内容变了→重新下。
+   这样重录某个音频后，点一次就能只更新变了的那几个。
+   分批并发 + 可暂停 + 断点续传；进度/指纹存 localStorage。 */
+(function(){
+  var POOL='kexin-audio-v1';
+  var items=[], idx=0, done=0, updated=0, failed=0, total=0, running=false, wantStop=false;
+  var CONC=6;
+  var $=function(id){ return document.getElementById(id); };
+  var btn=$('dlBtn'), stopBtn=$('dlStop'), statusEl=$('dlStatus'), fill=$('dlFill'), tip=$('dlTip');
+  if(!btn) return;
+
+  function fmtMB(n){ return (n/1024/1024).toFixed(1)+' MB'; }
+  function setStatus(t){ statusEl.textContent=t; }
+  function setProgress(cur,tot){ fill.style.width = tot ? Math.round(cur/tot*100)+'%' : '0%'; }
+  function loadState(){ try{ return JSON.parse(localStorage.getItem('kx_dl_state')||'{}'); }catch(e){ return {}; } }
+  function saveState(){ try{ localStorage.setItem('kx_dl_state', JSON.stringify({done:done,total:total,ts:Date.now()})); }catch(e){} }
+  function getHashes(){ try{ return JSON.parse(localStorage.getItem('kx_dl_hashes')||'{}'); }catch(e){ return {}; } }
+  function saveHash(u,h){ try{ var m=getHashes(); m[u]=h; localStorage.setItem('kx_dl_hashes',JSON.stringify(m)); }catch(e){} }
+  function showDoneState(){
+    var st=loadState();
+    if(st.total && st.done>=st.total){
+      setStatus('已下载全部 '+st.total+' 个音频，没网也能玩啦。改了内容后点「检查更新」即可只更变化的部分。');
+      setProgress(st.total, st.total); btn.textContent='检查更新'; btn.disabled=false;
+    }else if(st.done){
+      setStatus('上次下载到 '+st.done+' / '+st.total+'，点按钮接着下。');
+      setProgress(st.done, st.total);
+    }
+  }
+  // 已缓存且指纹匹配才跳过
+  function isFresh(url, hash){
+    return caches.open(POOL).then(function(c){
+      return c.match(url).then(function(hit){ return !!hit && getHashes()[url]===hash; });
+    });
+  }
+  function worker(){
+    if(wantStop || idx>=items.length) return Promise.resolve();
+    var it=items[idx++];
+    return isFresh(it.u, it.h).then(function(fresh){
+      if(fresh){ done++; return; }          // 内容没变，跳过
+      return fetch(it.u+'?t='+Date.now()).then(function(resp){
+        if(!resp.ok) throw new Error('http '+resp.status);
+        return caches.open(POOL).then(function(c){ return c.put(it.u, resp); });
+      }).then(function(){ saveHash(it.u,it.h); done++; updated++; })
+        .catch(function(){ failed++; });
+    }).then(function(){
+      if(done%10===0 || done===items.length){
+        setStatus('正在检查 '+done+' / '+total+'（新下/更新 '+updated+'，失败 '+failed+'）…');
+        setProgress(done,total); saveState();
+      }
+      return worker();
+    });
+  }
+  function start(){
+    if(running) return;
+    running=true; wantStop=false; btn.disabled=true; stopBtn.style.display='';
+    setStatus('正在读取下载清单…');
+    fetch('all-audio.json?t='+Date.now()).then(function(r){
+      if(!r.ok) throw new Error('清单读取失败'); return r.json();
+    }).then(function(data){
+      // 兼容新旧两种清单：新={v,files:[{u,h}]} 旧=[url]
+      if(Array.isArray(data)) items=data.map(function(u){ return {u:u,h:''}; });
+      else items=(data.files||[]).map(function(f){ return {u:f.u,h:f.h||''}; });
+      total=items.length; idx=0; failed=0; done=0; updated=0;
+      setStatus('正在检查 '+total+' 个音频，只下载新增或变化的（请保持页面打开）…'); setProgress(0,total);
+      var jobs=[]; for(var i=0;i<CONC;i++) jobs.push(worker());
+      return Promise.all(jobs);
+    }).then(function(){
+      running=false; stopBtn.style.display='none'; btn.disabled=false;
+      if(wantStop){
+        setStatus('已暂停，已检查 '+done+' / '+total+'。下次点按钮接着下。'); btn.textContent='继续下载';
+      }else{
+        saveState();
+        setStatus(updated ? ('完成！新下载/更新了 '+updated+' 个音频，现在没网也能玩啦。')
+                          : ('完成！全部 '+total+' 个音频都是最新的，没网也能玩啦。'));
+        setProgress(done,total); btn.textContent='检查更新';
+      }
+    }).catch(function(e){
+      running=false; stopBtn.style.display='none'; btn.disabled=false;
+      setStatus('出问题了：'+e.message+'，请重试。');
+    });
+  }
+  btn.addEventListener('click',start);
+  stopBtn.addEventListener('click',function(){ wantStop=true; stopBtn.disabled=true; setStatus('正在暂停…'); });
+  if(navigator.storage && navigator.storage.estimate){
+    navigator.storage.estimate().then(function(e){
+      if(e.usage) tip.textContent='已用空间 '+fmtMB(e.usage)+'。'+tip.textContent;
+    }).catch(function(){});
+  }
+  showDoneState();
+})();
+</script>
+<script src="/tapread.js"></script>
+</body>
+</html>
